@@ -30,6 +30,7 @@ use \OCP\AppFramework\Http\DataResponse;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http;
 use \OCA\Files_external\Service\GlobalStoragesService;
+use \OCA\Files_External\Service\BackendService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 
@@ -44,18 +45,21 @@ class GlobalStoragesController extends StoragesController {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param GlobalStoragesService $globalStoragesService storage service
+	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		GlobalStoragesService $globalStoragesService
+		GlobalStoragesService $globalStoragesService,
+		BackendService $backendService
 	) {
 		parent::__construct(
 			$AppName,
 			$request,
 			$l10n,
-			$globalStoragesService
+			$globalStoragesService,
+			$backendService
 		);
 	}
 

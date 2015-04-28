@@ -1,3 +1,7 @@
+<?php
+	use \OCA\Files_External\Lib\BackendConfig;
+	use \OCA\Files_External\Lib\BackendParameter;
+?>
 <form id="files_external" class="section" data-encryption-enabled="<?php echo $_['encryptionEnabled']?'true': 'false'; ?>">
 	<h2><?php p($l->t('External Storage')); ?></h2>
 	<?php if (isset($_['dependencies']) and ($_['dependencies']<>'')) print_unescaped(''.$_['dependencies'].''); ?>
@@ -16,6 +20,12 @@
 		<tbody>
 		<?php $_['mounts'] = array_merge($_['mounts'], array('' => array('id' => ''))); ?>
 		<?php foreach ($_['mounts'] as $mount): ?>
+			<?php
+				$mountBackend = null;
+				if (isset($mount['class'])) {
+					$mountBackend = $_['backends'][$mount['class']];
+				}
+			?>
 			<tr <?php print_unescaped(isset($mount['mountpoint']) ? 'class="'.OC_Util::sanitizeHTML($mount['class']).'"' : 'id="addMountPoint"'); ?> data-id="<?php p($mount['id']) ?>">
 				<td class="status">
 					<span></span>
@@ -25,59 +35,69 @@
 											  data-mountpoint="<?php p(isset($mount['mountpoint']) ? $mount['mountpoint'] : ''); ?>"
 											  placeholder="<?php p($l->t('Folder name')); ?>" />
 				</td>
-				<?php if (!isset($mount['mountpoint'])): ?>
+				<?php if (!isset($mountBackend)): ?>
 					<td class="backend">
 						<select id="selectBackend" class="selectBackend" data-configurations='<?php p(json_encode($_['backends'])); ?>'>
 							<option value="" disabled selected
 									style="display:none;"><?php p($l->t('Add storage')); ?></option>
-							<?php foreach ($_['backends'] as $class => $backend): ?>
-								<option value="<?php p($class); ?>"><?php p($backend['backend']); ?></option>
+							<?php foreach ($_['backends'] as $backend): ?>
+								<option value="<?php p($backend->getClass()); ?>"><?php p($backend->getText()); ?></option>
 							<?php endforeach; ?>
 						</select>
 					</td>
 				<?php else: ?>
-					<td class="backend" data-class="<?php p($mount['class']); ?>"><?php p($mount['backend']); ?>
+					<td class="backend" data-class="<?php p($mountBackend->getClass()); ?>"><?php p($mountBackend->getText()); ?>
 					</td>
 				<?php endif; ?>
 				<td class ="configuration">
-					<?php if (isset($mount['options'])): ?>
-						<?php foreach ($mount['options'] as $parameter => $value): ?>
-							<?php if (isset($_['backends'][$mount['class']]['configuration'][$parameter])): ?>
-								<?php
-									$placeholder = $_['backends'][$mount['class']]['configuration'][$parameter];
-									$is_optional = FALSE;
-									if (strpos($placeholder, '&') === 0) {
-										$is_optional = TRUE;
-										$placeholder = substr($placeholder, 1);
-									}
-								?>
-								<?php if (strpos($placeholder, '*') === 0): ?>
+					<?php if (isset($mountBackend)): ?>
+						<?php foreach ($mountBackend->getParameters() as $parameter): ?>
+							<?php
+								$value = '';
+								if (isset($mount['options'][$parameter->getName()])) {
+									$value = $mount['options'][$parameter->getName()];
+								}
+								$placeholder = $parameter->getText();
+								$is_optional = $parameter->isFlagSet(BackendParameter::FLAG_OPTIONAL);
+
+								switch ($parameter->getType()) {
+								case BackendParameter::VALUE_PASSWORD: ?>
 									<input type="password"
 										   <?php if ($is_optional): ?> class="optional"<?php endif; ?>
-										   data-parameter="<?php p($parameter); ?>"
-										   value="<?php p($value); ?>"
-										   placeholder="<?php p(substr($placeholder, 1)); ?>" />
-								<?php elseif (strpos($placeholder, '!') === 0): ?>
-									<label><input type="checkbox"
-												  data-parameter="<?php p($parameter); ?>"
-												  <?php if ($value == 'true'): ?> checked="checked"<?php endif; ?>
-												  /><?php p(substr($placeholder, 1)); ?></label>
-								<?php elseif (strpos($placeholder, '#') === 0): ?>
-									<input type="hidden"
-										   data-parameter="<?php p($parameter); ?>"
-										   value="<?php p($value); ?>" />
-								<?php else: ?>
-									<input type="text"
-										   <?php if ($is_optional): ?> class="optional"<?php endif; ?>
-										   data-parameter="<?php p($parameter); ?>"
+										   data-parameter="<?php p($parameter->getName()); ?>"
 										   value="<?php p($value); ?>"
 										   placeholder="<?php p($placeholder); ?>" />
-								<?php endif; ?>
-							<?php endif; ?>
+								<?php
+									break;
+								case BackendParameter::VALUE_BOOLEAN: ?>
+									<label><input type="checkbox"
+												  data-parameter="<?php p($parameter->getName()); ?>"
+												  <?php if ($value == 'true'): ?> checked="checked"<?php endif; ?>
+												  /><?php p($placeholder); ?></label>
+								<?php
+									break;
+								case BackendParameter::VALUE_HIDDEN: ?>
+									<input type="hidden"
+										   data-parameter="<?php p($parameter->getName()); ?>"
+										   value="<?php p($value); ?>" />
+								<?php
+									break;
+								default: ?>
+									<input type="text"
+										   <?php if ($is_optional): ?> class="optional"<?php endif; ?>
+										   data-parameter="<?php p($parameter->getName()); ?>"
+										   value="<?php p($value); ?>"
+										   placeholder="<?php p($placeholder); ?>" />
+							<?php
+								}
+							?>
 						<?php endforeach; ?>
-						<?php if (isset($_['backends'][$mount['class']]['custom'])): ?>
-							<?php OCP\Util::addScript('files_external', $_['backends'][$mount['class']]['custom']); ?>
-						<?php endif; ?>
+						<?php
+							$customJs = $mountBackend->getCustomJs();
+							if (isset($customJs)) {
+								\OCP\Util::addScript('files_external', $customJs);
+							}
+						?>
 					<?php endif; ?>
 				</td>
 				<?php if ($_['isAdminPage']): ?>
@@ -123,9 +143,9 @@
 
 		<p id="userMountingBackends"<?php if ($_['allowUserMounting'] != 'yes'): ?> class="hidden"<?php endif; ?>>
 			<?php p($l->t('Allow users to mount the following external storage')); ?><br />
-			<?php $i = 0; foreach ($_['personal_backends'] as $class => $backend): ?>
-				<input type="checkbox" id="allowUserMountingBackends<?php p($i); ?>" name="allowUserMountingBackends[]" value="<?php p($class); ?>" <?php if ($backend['enabled']) print_unescaped(' checked="checked"'); ?> />
-				<label for="allowUserMountingBackends<?php p($i); ?>"><?php p($backend['backend']); ?></label> <br />
+			<?php $i = 0; foreach ($_['backends'] as $backend): ?>
+				<input type="checkbox" id="allowUserMountingBackends<?php p($i); ?>" name="allowUserMountingBackends[]" value="<?php p($backend->getClass()); ?>" <?php if ($backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) print_unescaped(' checked="checked"'); ?> />
+				<label for="allowUserMountingBackends<?php p($i); ?>"><?php p($backend->getText()); ?></label> <br />
 				<?php $i++; ?>
 			<?php endforeach; ?>
 		</p>

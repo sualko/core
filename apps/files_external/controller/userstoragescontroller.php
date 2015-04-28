@@ -30,8 +30,10 @@ use \OCP\AppFramework\Http\DataResponse;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http;
 use \OCA\Files_external\Service\UserStoragesService;
+use \OCA\Files_External\Service\BackendService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
+use \OCA\Files_External\Lib\BackendConfig;
 
 /**
  * User storages controller
@@ -44,18 +46,21 @@ class UserStoragesController extends StoragesController {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param UserStoragesService $userStoragesService storage service
+	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		UserStoragesService $userStoragesService
+		UserStoragesService $userStoragesService,
+		BackendService $backendService
 	) {
 		parent::__construct(
 			$AppName,
 			$request,
 			$l10n,
-			$userStoragesService
+			$userStoragesService,
+			$backendService
 		);
 	}
 
@@ -69,17 +74,17 @@ class UserStoragesController extends StoragesController {
 	protected function validate(StorageConfig $storage) {
 		$result = parent::validate($storage);
 
-		if ($result != null) {
+		if ($result !== null) {
 			return $result;
 		}
 
 		// Verify that the mount point applies for the current user
 		// Prevent non-admin users from mounting local storage and other disabled backends
-		$allowedBackends = \OC_Mount_Config::getPersonalBackends();
-		if (!isset($allowedBackends[$storage->getBackendClass()])) {
+		$backend = $this->backendService->getBackend($storage->getBackendClass());
+		if (!$backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
 			return new DataResponse(
 				array(
-					'message' => (string)$this->l10n->t('Invalid storage backend "%s"', array($storage->getBackendClass()))
+					'message' => (string)$this->l10n->t('Admin-only storage backend "%s"', array($storage->getBackendClass()))
 				),
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);

@@ -30,6 +30,7 @@ use \OCP\AppFramework\Http\DataResponse;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http;
 use \OCA\Files_external\Service\StoragesService;
+use \OCA\Files_External\Service\BackendService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 
@@ -52,6 +53,9 @@ abstract class StoragesController extends Controller {
 	 */
 	protected $service;
 
+	/** @var BackendService */
+	protected $backendService;
+
 	/**
 	 * Creates a new storages controller.
 	 *
@@ -59,16 +63,19 @@ abstract class StoragesController extends Controller {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param StoragesService $storagesService storage service
+	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		StoragesService $storagesService
+		StoragesService $storagesService,
+		BackendService $backendService
 	) {
 		parent::__construct($AppName, $request);
 		$this->l10n = $l10n;
 		$this->service = $storagesService;
+		$this->backendService = $backendService;
 	}
 
 	/**
@@ -89,14 +96,21 @@ abstract class StoragesController extends Controller {
 			);
 		}
 
-		// TODO: validate that other attrs are set
-
-		$backends = \OC_Mount_Config::getBackends();
-		if (!isset($backends[$storage->getBackendClass()])) {
+		$backend = $this->backendService->getBackend($storage->getBackendClass());
+		if (!$backend || $backend->checkDependencies()) {
 			// invalid backend
 			return new DataResponse(
 				array(
 					'message' => (string)$this->l10n->t('Invalid storage backend "%s"', array($storage->getBackendClass()))
+				),
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		if (!$backend->validateStorage($storage)) {
+			// unsatisfied parameters
+			return new DataResponse(
+				array(
+					'message' => (string)$this->l10n->t('Unsatisfied backend parameters')
 				),
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
