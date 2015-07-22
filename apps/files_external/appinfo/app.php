@@ -31,6 +31,7 @@
  *
  */
 $app = new \OCA\Files_external\Appinfo\Application();
+$appContainer = $app->getContainer();
 
 $l = \OC::$server->getL10N('files_external');
 
@@ -64,11 +65,11 @@ if (OCP\Config::getAppValue('files_external', 'allow_user_mounting', 'yes') == '
 ]);
 
 // Teach OC_Mount_Config about the AppFramework
-\OC_Mount_Config::initApp($app->getContainer());
+\OC_Mount_Config::initApp($appContainer);
 
 // connecting hooks
 OCP\Util::connectHook('OC_Filesystem', 'post_initMountPoints', '\OC_Mount_Config', 'initMountPointsHook');
 OCP\Util::connectHook('OC_User', 'post_login', 'OC\Files\Storage\SMB_OC', 'login');
 
-$mountProvider = new \OCA\Files_External\Config\ConfigAdapter();
+$mountProvider = $appContainer->query('\OCA\Files_External\Config\ConfigAdapter');
 \OC::$server->getMountProviderCollection()->registerProvider($mountProvider);

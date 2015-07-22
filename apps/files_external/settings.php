@@ -31,6 +31,7 @@ OC_Util::checkAdminUser();
 $app = new \OCA\Files_external\Appinfo\Application();
 $appContainer = $app->getContainer();
 $backendService = $appContainer->query('\OCA\Files_External\Service\BackendService');
+$globalStoragesService = $appContainer->query('\OCA\Files_external\Service\GlobalStoragesService');
 
 OCP\Util::addScript('files_external', 'settings');
 OCP\Util::addStyle('files_external', 'settings');
@@ -38,30 +39,10 @@ OCP\Util::addStyle('files_external', 'settings');
 \OC_Util::addVendorScript('select2/select2');
 \OC_Util::addVendorStyle('select2/select2');
 
-$mounts = OC_Mount_Config::getSystemMountPoints();
-$hasId = true;
-foreach ($mounts as $mount) {
-	if (!isset($mount['id'])) {
-		// some mount points are missing ids
-		$hasId = false;
-		break;
-	}
-}
-
-if (!$hasId) {
-	$globalStoragesService = $appContainer->query('\OCA\Files_external\Service\GlobalStoragesService');
-	// this will trigger the new storage code which will automatically
-	// generate storage config ids
-	$globalStoragesService->getAllStorages();
-	// re-read updated config
-	$mounts = OC_Mount_Config::getSystemMountPoints();
-	// TODO: use the new storage config format in the template
-}
-
 $tmpl = new OCP\Template('files_external', 'settings');
 $tmpl->assign('encryptionEnabled', \OC::$server->getEncryptionManager()->isEnabled());
 $tmpl->assign('isAdminPage', true);
-$tmpl->assign('mounts', $mounts);
+$tmpl->assign('storages', $globalStoragesService->getAllStorages());
 $tmpl->assign('backends', $backendService->getAvailableBackends());
 $tmpl->assign('personal_backends', $backendService->getUserBackends());
 $tmpl->assign('dependencies', OC_Mount_Config::dependencyMessage($backendService->getBackends()));

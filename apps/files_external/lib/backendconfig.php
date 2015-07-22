@@ -23,6 +23,7 @@ namespace OCA\Files_External\Lib;
 
 use \OCA\Files_External\Lib\BackendParameter;
 use \OCA\Files_External\Lib\BackendDependency;
+use \OCA\Files_External\Lib\StorageConfig;
 
 /**
  * External storage backend configuration
