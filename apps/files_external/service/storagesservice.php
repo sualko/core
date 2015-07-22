@@ -28,11 +28,22 @@ use \OC\Files\Filesystem;
 
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_external\NotFoundException;
+use \OCA\Files_External\Service\BackendService;
 
 /**
  * Service class to manage external storages
  */
 abstract class StoragesService {
+
+	/** @var BackendService */
+	protected $backendService;
+
+	/**
+	 * @param BackendService $backendService
+	 */
+	public function __construct(BackendService $backendService) {
+		$this->backendService = $backendService;
+	}
 
 	/**
 	 * Read legacy config data
@@ -60,14 +71,17 @@ abstract class StoragesService {
 		$applicable,
 		$storageOptions
 	) {
-		$storageConfig->setBackendClass($storageOptions['class']);
+		$backend = $this->backendService->getBackend($storageOptions['class']);
+		$storageConfig->setBackend($backend);
+
 		$storageConfig->setBackendOptions($storageOptions['options']);
 		if (isset($storageOptions['mountOptions'])) {
 			$storageConfig->setMountOptions($storageOptions['mountOptions']);
 		}
-		if (isset($storageOptions['priority'])) {
-			$storageConfig->setPriority($storageOptions['priority']);
+		if (!isset($storageOptions['priority'])) {
+			$storageOptions['priority'] = $backend->getPriority();
 		}
+		$storageConfig->setPriority($storageOptions['priority']);
 
 		if ($mountType === \OC_Mount_Config::MOUNT_TYPE_USER) {
 			$applicableUsers = $storageConfig->getApplicableUsers();
@@ -222,7 +236,7 @@ abstract class StoragesService {
 
 		$options = [
 			'id' => $storageConfig->getId(),
-			'class' => $storageConfig->getBackendClass(),
+			'class' => $storageConfig->getBackend()->getClass(),
 			'options' => $storageConfig->getBackendOptions(),
 		];
 

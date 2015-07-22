@@ -21,6 +21,8 @@
 
 namespace OCA\Files_external\Lib;
 
+use \OCA\Files_External\Lib\BackendConfig;
+
 /**
  * External storage configuration
  */
@@ -34,11 +36,11 @@ class StorageConfig implements \JsonSerializable {
 	private $id;
 
 	/**
-	 * Backend class name
+	 * Backend config
 	 *
-	 * @var string
+	 * @var BackendConfig
 	 */
-	private $backendClass;
+	private $backend;
 
 	/**
 	 * Backend options
@@ -138,21 +140,17 @@ class StorageConfig implements \JsonSerializable {
 	}
 
 	/**
-	 * Returns the external storage backend class name
-	 *
-	 * @return string external storage backend class name
+	 * @return BackendConfig
 	 */
-	public function getBackendClass() {
-		return $this->backendClass;
+	public function getBackend() {
+		return $this->backend;
 	}
 
 	/**
-	 * Sets the external storage backend class name
-	 *
-	 * @param string external storage backend class name
+	 * @param BackendConfig
 	 */
-	public function setBackendClass($backendClass) {
-		$this->backendClass = $backendClass;
+	public function setBackend(BackendConfig $backend) {
+		$this->backend= $backend;
 	}
 
 	/**
@@ -283,7 +281,7 @@ class StorageConfig implements \JsonSerializable {
 			$result['id'] = $this->id;
 		}
 		$result['mountPoint'] = $this->mountPoint;
-		$result['backendClass'] = $this->backendClass;
+		$result['backendClass'] = $this->backend->getClass();
 		$result['backendOptions'] = $this->backendOptions;
 		if (!is_null($this->priority)) {
 			$result['priority'] = $this->priority;

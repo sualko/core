@@ -96,12 +96,14 @@ abstract class StoragesController extends Controller {
 			);
 		}
 
-		$backend = $this->backendService->getBackend($storage->getBackendClass());
+		$backend = $storage->getBackend();
 		if (!$backend || $backend->checkDependencies()) {
 			// invalid backend
 			return new DataResponse(
 				array(
-					'message' => (string)$this->l10n->t('Invalid storage backend "%s"', array($storage->getBackendClass()))
+					'message' => (string)$this->l10n->t('Invalid storage backend "%s"', [
+						$storage->getBackend()->getClass()
+					])
 				),
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -131,7 +133,7 @@ abstract class StoragesController extends Controller {
 		// update status (can be time-consuming)
 		$storage->setStatus(
 			\OC_Mount_Config::getBackendStatus(
-				$storage->getBackendClass(),
+				$storage->getBackend()->getClass(),
 				$storage->getBackendOptions(),
 				false
 			)

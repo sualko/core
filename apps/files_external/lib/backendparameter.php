@@ -151,4 +151,29 @@ class BackendParameter implements \JsonSerializable {
 
 		return $prefix . $this->getText();
 	}
+
+	/**
+	 * Validate a parameter value against this
+	 *
+	 * @param mixed $value Value to check
+	 * @return bool success
+	 */
+	public function validateValue($value) {
+		if ($this->getFlags() & self::FLAG_OPTIONAL) {
+			return true;
+		}
+		switch ($this->getType()) {
+		case self::VALUE_BOOLEAN:
+			if (!is_bool($value)) {
+				return false;
+			}
+			break;
+		default:
+			if (!isset($value)) {
+				return false;
+			}
+			break;
+		}
+		return true;
+	}
 }

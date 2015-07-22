@@ -80,11 +80,13 @@ class UserStoragesController extends StoragesController {
 
 		// Verify that the mount point applies for the current user
 		// Prevent non-admin users from mounting local storage and other disabled backends
-		$backend = $this->backendService->getBackend($storage->getBackendClass());
+		$backend = $storage->getBackend();
 		if (!$backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
 			return new DataResponse(
 				array(
-					'message' => (string)$this->l10n->t('Admin-only storage backend "%s"', array($storage->getBackendClass()))
+					'message' => (string)$this->l10n->t('Admin-only storage backend "%s"', [
+						$storage->getBackend()->getClass()
+					])
 				),
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -124,7 +126,7 @@ class UserStoragesController extends StoragesController {
 	) {
 		$newStorage = new StorageConfig();
 		$newStorage->setMountPoint($mountPoint);
-		$newStorage->setBackendClass($backendClass);
+		$newStorage->setBackend($this->backendService->getBackend($backendClass));
 		$newStorage->setBackendOptions($backendOptions);
 		$newStorage->setMountOptions($mountOptions);
 
@@ -164,7 +166,7 @@ class UserStoragesController extends StoragesController {
 	) {
 		$storage = new StorageConfig($id);
 		$storage->setMountPoint($mountPoint);
-		$storage->setBackendClass($backendClass);
+		$storage->setBackend($this->backendService->getBackend($backendClass));
 		$storage->setBackendOptions($backendOptions);
 		$storage->setMountOptions($mountOptions);
 

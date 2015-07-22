@@ -87,7 +87,7 @@ class GlobalStoragesController extends StoragesController {
 	) {
 		$newStorage = new StorageConfig();
 		$newStorage->setMountPoint($mountPoint);
-		$newStorage->setBackendClass($backendClass);
+		$newStorage->setBackend($this->backendService->getBackend($backendClass));
 		$newStorage->setBackendOptions($backendOptions);
 		$newStorage->setMountOptions($mountOptions);
 		$newStorage->setApplicableUsers($applicableUsers);
@@ -135,7 +135,7 @@ class GlobalStoragesController extends StoragesController {
 	) {
 		$storage = new StorageConfig($id);
 		$storage->setMountPoint($mountPoint);
-		$storage->setBackendClass($backendClass);
+		$storage->setBackend($this->backendService->getBackend($backendClass));
 		$storage->setBackendOptions($backendOptions);
 		$storage->setMountOptions($mountOptions);
 		$storage->setApplicableUsers($applicableUsers);

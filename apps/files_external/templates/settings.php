@@ -19,10 +19,7 @@
 		</thead>
 		<tbody>
 		<?php foreach ($_['storages'] as $storage): ?>
-			<?php
-				$mountBackend = $_['backends'][$storage->getBackendClass()];
-			?>
-			<tr class="<?php p($storage->getBackendClass()); ?>" data-id="<?php p($storage->getId()); ?>">
+			<tr class="<?php p($storage->getBackend()->getClass()); ?>" data-id="<?php p($storage->getId()); ?>">
 				<td class="status">
 					<span></span>
 				</td>
@@ -31,11 +28,11 @@
 											  data-mountpoint="<?php p(ltrim($storage->getMountPoint(), '/')); ?>"
 											  placeholder="<?php p($l->t('Folder name')); ?>" />
 				</td>
-				<td class="backend" data-class="<?php p($mountBackend->getClass()); ?>"><?php p($mountBackend->getText()); ?>
+				<td class="backend" data-class="<?php p($storage->getBackend()->getClass()); ?>"><?php p($storage->getBackend()->getText()); ?>
 				</td>
 				<td class="configuration">
 					<?php $options = $storage->getBackendOptions(); ?>
-					<?php foreach ($mountBackend->getParameters() as $parameter): ?>
+					<?php foreach ($storage->getBackend()->getParameters() as $parameter): ?>
 						<?php
 							$value = '';
 							if (isset($options[$parameter->getName()])) {
@@ -83,7 +80,7 @@
 						?>
 					<?php endforeach; ?>
 					<?php
-						$customJs = $mountBackend->getCustomJs();
+						$customJs = $storage->getBackend()->getCustomJs();
 						if (isset($customJs)) {
 							\OCP\Util::addScript('files_external', $customJs);
 						}
