@@ -62,6 +62,8 @@ class LockPlugin extends ServerPlugin {
 	}
 
 	public function getLock(RequestInterface $request) {
+		// we cant listen on 'beforeMethod:PUT' due to order of operations with setting up the tree
+		// so instead we limit ourselves to the PUT method manually
 		if ($request->getMethod() !== 'PUT') {
 			return;
 		}
