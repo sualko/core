@@ -169,7 +169,7 @@ class BackendParameter implements \JsonSerializable {
 			}
 			break;
 		default:
-			if (!isset($value)) {
+			if (empty($value)) {
 				return false;
 			}
 			break;

@@ -238,7 +238,9 @@ class BackendConfig implements \JsonSerializable {
 	public function validateStorage(StorageConfig $storage) {
 		$options = $storage->getBackendOptions();
 		foreach ($this->parameters as $parameter) {
-			if (!$parameter->validateValue($options[$parameter->getName()])) {
+			$value = isset($options[$parameter->getName()]) ?
+				$options[$parameter->getName()] : null;
+			if (!$parameter->validateValue($value)) {
 				return false;
 			}
 		}

@@ -1,6 +1,7 @@
 <?php
 /**
  * @author Vincent Petry <pvince81@owncloud.com>
+ * @author Robin McCorkell <rmccorkell@owncloud.com>
  *
  * @copyright Copyright (c) 2015, ownCloud, Inc.
  * @license AGPL-3.0
@@ -169,6 +170,47 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 	 */
 	public function testDeleteUnexistingStorage() {
 		$this->service->removeStorage(255);
+	}
+
+	public function testCreateStorage() {
+		$mountPoint = 'mount';
+		$class = '\OC\Files\Storage\SMB';
+		$backendOptions = ['param' => 'foo', 'param2' => 'bar'];
+		$mountOptions = ['option' => 'foobar'];
+		$applicableUsers = ['user1', 'user2'];
+		$applicableGroups = ['group'];
+		$priority = 123;
+
+		$backend = $this->backendService->getBackend($class);
+
+		$storage = $this->service->createStorage(
+			$mountPoint,
+			$class,
+			$backendOptions,
+			$mountOptions,
+			$applicableUsers,
+			$applicableGroups,
+			$priority
+		);
+
+		$this->assertEquals('/'.$mountPoint, $storage->getMountPoint());
+		$this->assertEquals($backend, $storage->getBackend());
+		$this->assertEquals($backendOptions, $storage->getBackendOptions());
+		$this->assertEquals($mountOptions, $storage->getMountOptions());
+		$this->assertEquals($applicableUsers, $storage->getApplicableUsers());
+		$this->assertEquals($applicableGroups, $storage->getApplicableGroups());
+		$this->assertEquals($priority, $storage->getPriority());
+	}
+
+	/**
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function testCreateStorageInvalidClass() {
+		$this->service->createStorage(
+			'mount',
+			'\OC\Not\A\Backend',
+			[]
+		);
 	}
 
 	public static function createHookCallback($params) {

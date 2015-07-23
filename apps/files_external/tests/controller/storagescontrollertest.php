@@ -1,6 +1,7 @@
 <?php
 /**
  * @author Vincent Petry <pvince81@owncloud.com>
+ * @author Robin McCorkell <rmccorkell@owncloud.com>
  *
  * @copyright Copyright (c) 2015, ownCloud, Inc.
  * @license AGPL-3.0
@@ -252,4 +253,37 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 		$this->assertEquals(Http::STATUS_OK, $response->getStatus());
 		$this->assertEquals($storageConfig, $response->getData());
 	}
+
+	public function testValidateStorage() {
+		$backendConfig = $this->getMockBuilder('\OCA\Files_External\Lib\BackendConfig')
+			->setConstructorArgs(['\OC\Files\Storage\SMB', 'smb', []])
+			->getMock();
+		$backendConfig->expects($this->once())
+			->method('validateStorage')
+			->will($this->returnValue(false));
+
+		$storageConfig = new StorageConfig();
+		$storageConfig->setMountPoint('mount');
+		$storageConfig->setBackend($backendConfig);
+		$storageConfig->setBackendOptions([]);
+
+		$this->service->expects($this->once())
+			->method('createStorage')
+			->will($this->returnValue($storageConfig));
+		$this->service->expects($this->never())
+			->method('addStorage');
+
+		$response = $this->controller->create(
+			'mount',
+			'\OC\Files\Storage\SMB',
+			array(),
+			[],
+			[],
+			[],
+			null
+		);
+
+		$this->assertEquals(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+	}
+
 }
