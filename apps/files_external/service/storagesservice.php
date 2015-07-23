@@ -311,6 +311,52 @@ abstract class StoragesService {
 	}
 
 	/**
+	 * Create a storage from its parameters
+	 *
+	 * @param string $mountPoint storage mount point
+	 * @param string $backendClass backend class name
+	 * @param array $backendOptions backend-specific options
+	 * @param array|null $mountOptions mount-specific options
+	 * @param array|null $applicableUsers users for which to mount the storage
+	 * @param array|null $applicableGroups groups for which to mount the storage
+	 * @param int|null $priority priority
+	 *
+	 * @return StorageConfig
+	 */
+	public function createStorage(
+		$mountPoint,
+		$backendClass,
+		$backendOptions,
+		$mountOptions = null,
+		$applicableUsers = null,
+		$applicableGroups = null,
+		$priority = null
+	) {
+		$backend = $this->backendService->getBackend($backendClass);
+		if (!$backend) {
+			throw new \InvalidArgumentException('Unable to get backend for backend class '.$backendClass);
+		}
+		$newStorage = new StorageConfig();
+		$newStorage->setMountPoint($mountPoint);
+		$newStorage->setBackend($backend);
+		$newStorage->setBackendOptions($backendOptions);
+		if (isset($mountOptions)) {
+			$newStorage->setMountOptions($mountOptions);
+		}
+		if (isset($applicableUsers)) {
+			$newStorage->setApplicableUsers($applicableUsers);
+		}
+		if (isset($applicableGroups)) {
+			$newStorage->setApplicableGroups($applicableGroups);
+		}
+		if (isset($priority)) {
+			$newStorage->setPriority($priority);
+		}
+
+		return $newStorage;
+	}
+
+	/**
 	 * Triggers the given hook signal for all the applicables given
 	 *
 	 * @param string $signal signal

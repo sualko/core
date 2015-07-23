@@ -30,7 +30,6 @@ use \OCP\AppFramework\Http\DataResponse;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http;
 use \OCA\Files_external\Service\GlobalStoragesService;
-use \OCA\Files_External\Service\BackendService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 
@@ -45,21 +44,18 @@ class GlobalStoragesController extends StoragesController {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param GlobalStoragesService $globalStoragesService storage service
-	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		GlobalStoragesService $globalStoragesService,
-		BackendService $backendService
+		GlobalStoragesService $globalStoragesService
 	) {
 		parent::__construct(
 			$AppName,
 			$request,
 			$l10n,
-			$globalStoragesService,
-			$backendService
+			$globalStoragesService
 		);
 	}
 
@@ -85,14 +81,18 @@ class GlobalStoragesController extends StoragesController {
 		$applicableGroups,
 		$priority
 	) {
-		$newStorage = new StorageConfig();
-		$newStorage->setMountPoint($mountPoint);
-		$newStorage->setBackend($this->backendService->getBackend($backendClass));
-		$newStorage->setBackendOptions($backendOptions);
-		$newStorage->setMountOptions($mountOptions);
-		$newStorage->setApplicableUsers($applicableUsers);
-		$newStorage->setApplicableGroups($applicableGroups);
-		$newStorage->setPriority($priority);
+		$newStorage = $this->createStorage(
+			$mountPoint,
+			$backendClass,
+			$backendOptions,
+			$mountOptions,
+			$applicableUsers,
+			$applicableGroups,
+			$priority
+		);
+		if ($newStorage instanceof DataResponse) {
+			return $newStorage;
+		}
 
 		$response = $this->validate($newStorage);
 		if (!empty($response)) {
@@ -133,14 +133,19 @@ class GlobalStoragesController extends StoragesController {
 		$applicableGroups,
 		$priority
 	) {
-		$storage = new StorageConfig($id);
-		$storage->setMountPoint($mountPoint);
-		$storage->setBackend($this->backendService->getBackend($backendClass));
-		$storage->setBackendOptions($backendOptions);
-		$storage->setMountOptions($mountOptions);
-		$storage->setApplicableUsers($applicableUsers);
-		$storage->setApplicableGroups($applicableGroups);
-		$storage->setPriority($priority);
+		$storage = $this->createStorage(
+			$mountPoint,
+			$backendClass,
+			$backendOptions,
+			$mountOptions,
+			$applicableUsers,
+			$applicableGroups,
+			$priority
+		);
+		if ($storage instanceof DataResponse) {
+			return $storage;
+		}
+		$storage->setId($id);
 
 		$response = $this->validate($storage);
 		if (!empty($response)) {

@@ -30,9 +30,9 @@ use \OCP\AppFramework\Http\DataResponse;
 use \OCP\AppFramework\Controller;
 use \OCP\AppFramework\Http;
 use \OCA\Files_external\Service\StoragesService;
-use \OCA\Files_External\Service\BackendService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
+use \OCA\Files_External\Lib\BackendConfig;
 
 /**
  * Base class for storages controllers
@@ -53,9 +53,6 @@ abstract class StoragesController extends Controller {
 	 */
 	protected $service;
 
-	/** @var BackendService */
-	protected $backendService;
-
 	/**
 	 * Creates a new storages controller.
 	 *
@@ -63,19 +60,58 @@ abstract class StoragesController extends Controller {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param StoragesService $storagesService storage service
-	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		StoragesService $storagesService,
-		BackendService $backendService
+		StoragesService $storagesService
 	) {
 		parent::__construct($AppName, $request);
 		$this->l10n = $l10n;
 		$this->service = $storagesService;
-		$this->backendService = $backendService;
+	}
+
+	/**
+	 * Create a storage from its parameters
+	 *
+	 * @param string $mountPoint storage mount point
+	 * @param string $backendClass backend class name
+	 * @param array $backendOptions backend-specific options
+	 * @param array|null $mountOptions mount-specific options
+	 * @param array|null $applicableUsers users for which to mount the storage
+	 * @param array|null $applicableGroups groups for which to mount the storage
+	 * @param int|null $priority priority
+	 *
+	 * @return StorageConfig|DataResponse
+	 */
+	protected function createStorage(
+		$mountPoint,
+		$backendClass,
+		$backendOptions,
+		$mountOptions = null,
+		$applicableUsers = null,
+		$applicableGroups = null,
+		$priority = null
+	) {
+		try {
+			return $this->service->createStorage(
+				$mountPoint,
+				$backendClass,
+				$backendOptions,
+				$mountOptions,
+				$applicableUsers,
+				$applicableGroups,
+				$priority
+			);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(
+				[
+					'message' => (string)$this->l10n->t('Invalid backend class "%s"', [$backendClass])
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 	}
 
 	/**
@@ -96,6 +132,7 @@ abstract class StoragesController extends Controller {
 			);
 		}
 
+		/** @var BackendConfig */
 		$backend = $storage->getBackend();
 		if (!$backend || $backend->checkDependencies()) {
 			// invalid backend

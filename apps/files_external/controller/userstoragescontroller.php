@@ -46,21 +46,18 @@ class UserStoragesController extends StoragesController {
 	 * @param IRequest $request request object
 	 * @param IL10N $l10n l10n service
 	 * @param UserStoragesService $userStoragesService storage service
-	 * @param BackendService $backendService
 	 */
 	public function __construct(
 		$AppName,
 		IRequest $request,
 		IL10N $l10n,
-		UserStoragesService $userStoragesService,
-		BackendService $backendService
+		UserStoragesService $userStoragesService
 	) {
 		parent::__construct(
 			$AppName,
 			$request,
 			$l10n,
-			$userStoragesService,
-			$backendService
+			$userStoragesService
 		);
 	}
 
@@ -80,6 +77,7 @@ class UserStoragesController extends StoragesController {
 
 		// Verify that the mount point applies for the current user
 		// Prevent non-admin users from mounting local storage and other disabled backends
+		/** @var BackendConfig */
 		$backend = $storage->getBackend();
 		if (!$backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
 			return new DataResponse(
@@ -124,11 +122,15 @@ class UserStoragesController extends StoragesController {
 		$backendOptions,
 		$mountOptions
 	) {
-		$newStorage = new StorageConfig();
-		$newStorage->setMountPoint($mountPoint);
-		$newStorage->setBackend($this->backendService->getBackend($backendClass));
-		$newStorage->setBackendOptions($backendOptions);
-		$newStorage->setMountOptions($mountOptions);
+		$newStorage = $this->createStorage(
+			$mountPoint,
+			$backendClass,
+			$backendOptions,
+			$mountOptions
+		);
+		if ($newStorage instanceOf DataResponse) {
+			return $newStorage;
+		}
 
 		$response = $this->validate($newStorage);
 		if (!empty($response)) {
@@ -164,11 +166,16 @@ class UserStoragesController extends StoragesController {
 		$backendOptions,
 		$mountOptions
 	) {
-		$storage = new StorageConfig($id);
-		$storage->setMountPoint($mountPoint);
-		$storage->setBackend($this->backendService->getBackend($backendClass));
-		$storage->setBackendOptions($backendOptions);
-		$storage->setMountOptions($mountOptions);
+		$storage = $this->createStorage(
+			$mountPoint,
+			$backendClass,
+			$backendOptions,
+			$mountOptions
+		);
+		if ($storage instanceOf DataResponse) {
+			return $storage;
+		}
+		$storage->setId($id);
 
 		$response = $this->validate($storage);
 		if (!empty($response)) {
