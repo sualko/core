@@ -26,6 +26,7 @@ use \OCA\Files_external\Controller\GlobalStoragesController;
 use \OCA\Files_external\Service\GlobalStoragesService;
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_external\NotFoundException;
+use \OCA\Files_External\Lib\BackendConfig;
 
 abstract class StoragesControllerTest extends \Test\TestCase {
 
@@ -50,7 +51,12 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	public function testAddStorage() {
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');
+		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
+		$storageConfig->setBackendOptions([]);
 
+		$this->service->expects($this->once())
+			->method('createStorage')
+			->will($this->returnValue($storageConfig));
 		$this->service->expects($this->once())
 			->method('addStorage')
 			->will($this->returnValue($storageConfig));
@@ -73,7 +79,12 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	public function testUpdateStorage() {
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');
+		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
+		$storageConfig->setBackendOptions([]);
 
+		$this->service->expects($this->once())
+			->method('createStorage')
+			->will($this->returnValue($storageConfig));
 		$this->service->expects($this->once())
 			->method('updateStorage')
 			->will($this->returnValue($storageConfig));
@@ -106,6 +117,14 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	 * @dataProvider mountPointNamesProvider
 	 */
 	public function testAddOrUpdateStorageInvalidMountPoint($mountPoint) {
+		$storageConfig = new StorageConfig(1);
+		$storageConfig->setMountPoint($mountPoint);
+		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
+		$storageConfig->setBackendOptions([]);
+
+		$this->service->expects($this->exactly(2))
+			->method('createStorage')
+			->will($this->returnValue($storageConfig));
 		$this->service->expects($this->never())
 			->method('addStorage');
 		$this->service->expects($this->never())
@@ -138,6 +157,9 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	}
 
 	public function testAddOrUpdateStorageInvalidBackend() {
+		$this->service->expects($this->exactly(2))
+			->method('createStorage')
+			->will($this->throwException(new \InvalidArgumentException()));
 		$this->service->expects($this->never())
 			->method('addStorage');
 		$this->service->expects($this->never())
@@ -170,6 +192,14 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	}
 
 	public function testUpdateStorageNonExisting() {
+		$storageConfig = new StorageConfig(255);
+		$storageConfig->setMountPoint('mount');
+		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
+		$storageConfig->setBackendOptions([]);
+
+		$this->service->expects($this->once())
+			->method('createStorage')
+			->will($this->returnValue($storageConfig));
 		$this->service->expects($this->once())
 			->method('updateStorage')
 			->will($this->throwException(new NotFoundException()));
@@ -206,9 +236,10 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	}
 
 	public function testGetStorage() {
+		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('test');
-		$storageConfig->setBackendClass('\OC\Files\Storage\SMB');
+		$storageConfig->setBackend($backendConfig);
 		$storageConfig->setBackendOptions(['user' => 'test', 'password', 'password123']);
 		$storageConfig->setMountOptions(['priority' => false]);
 

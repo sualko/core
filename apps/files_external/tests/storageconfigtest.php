@@ -22,6 +22,7 @@
 namespace OCA\Files_external\Tests;
 
 use \OCA\Files_external\Lib\StorageConfig;
+use \OCA\Files_External\Lib\BackendConfig;
 
 class StorageConfigTest extends \Test\TestCase {
 

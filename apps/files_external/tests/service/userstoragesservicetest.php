@@ -25,6 +25,7 @@ use \OC\Files\Filesystem;
 use \OCA\Files_external\Service\UserStoragesService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
+use \OCA\Files_External\Lib\BackendConfig;
 
 class UserStoragesServiceTest extends StoragesServiceTest {
 
@@ -40,7 +41,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 			->method('getUser')
 			->will($this->returnValue($this->user));
 
-		$this->service = new UserStoragesService($userSession);
+		$this->service = new UserStoragesService($this->backendService, $userSession);
 
 		// create home folder
 		mkdir($this->dataDir . '/' . $this->userId . '/');
@@ -76,7 +77,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 		$newStorage = $this->service->getStorage(1);
 
 		$this->assertEquals($storage->getMountPoint(), $newStorage->getMountPoint());
-		$this->assertEquals($storage->getBackendClass(), $newStorage->getBackendClass());
+		$this->assertEquals($storage->getBackend(), $newStorage->getBackend());
 		$this->assertEquals($storage->getBackendOptions(), $newStorage->getBackendOptions());
 		$this->assertEquals(1, $newStorage->getId());
 		$this->assertEquals(0, $newStorage->getStatus());

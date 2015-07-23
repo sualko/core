@@ -25,11 +25,12 @@ use \OC\Files\Filesystem;
 use \OCA\Files_external\Service\GlobalStoragesService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
+use \OCA\Files_External\Lib\BackendConfig;
 
 class GlobalStoragesServiceTest extends StoragesServiceTest {
 	public function setUp() {
 		parent::setUp();
-		$this->service = new GlobalStoragesService();
+		$this->service = new GlobalStoragesService($this->backendService);
 	}
 
 	public function tearDown() {
@@ -56,12 +57,13 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 	}
 
 	function storageDataProvider() {
+		$backend = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
 		return [
 			// all users
 			[
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
-					'backendClass' => '\OC\Files\Storage\SMB',
+					'backend' => $backend,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -76,7 +78,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 			[
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
-					'backendClass' => '\OC\Files\Storage\SMB',
+					'backend' => $backend,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -91,7 +93,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 			[
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
-					'backendClass' => '\OC\Files\Storage\SMB',
+					'backend' => $backend,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -106,7 +108,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 			[
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
-					'backendClass' => '\OC\Files\Storage\SMB',
+					'backend' => $backend,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -132,7 +134,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		$newStorage = $this->service->getStorage(1);
 
 		$this->assertEquals($storage->getMountPoint(), $newStorage->getMountPoint());
-		$this->assertEquals($storage->getBackendClass(), $newStorage->getBackendClass());
+		$this->assertEquals($storage->getBackend(), $newStorage->getBackend());
 		$this->assertEquals($storage->getBackendOptions(), $newStorage->getBackendOptions());
 		$this->assertEquals($storage->getApplicableUsers(), $newStorage->getApplicableUsers());
 		$this->assertEquals($storage->getApplicableGroups(), $newStorage->getApplicableGroups());
