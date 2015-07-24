@@ -350,15 +350,15 @@ class OC_Mount_Config {
 				if ($message = $dependency->getMessage()) {
 					$message .= '<br />' . $l->t('<b>Note:</b> ') . $message;
 				} else {
-					$dependencyGroups[$dependency->getDependency()][] = $dependency;
+					$dependencyGroups[$dependency->getDependency()][] = $backend;
 				}
 			}
 		}
 
-		foreach ($dependencyGroups as $module => $dependencies) {
-			$backends = implode(', ', array_map(function($dependency) {
-				return '<i>' . $dependency->getBackend()->getText() . '</i>';
-			}, $dependencies));
+		foreach ($dependencyGroups as $module => $dependants) {
+			$backends = implode(', ', array_map(function($backend) {
+				return '<i>' . $backend->getText() . '</i>';
+			}, $dependants));
 			$message .= '<br />' . OC_Mount_Config::getSingleDependencyMessage($l, $module, $backends);
 		}
 

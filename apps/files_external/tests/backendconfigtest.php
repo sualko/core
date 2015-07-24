@@ -85,10 +85,13 @@ class BackendConfigTest extends \Test\TestCase {
 	 * Static method for testCheckDependencies()
 	 * Do not stare at for too long, keep all limbs well away from the function
 	 *
-	 * @return array
+	 * @return BackendDependency[]
 	 */
 	public static function checkDependencies() {
-		return ['dependency' => 'missing dependency'];
+		return [
+			(new BackendDependency('dependency'))->setMessage('missing dependency'),
+			(new BackendDependency('program'))->setMessage('cannot find program'),
+		];
 	}
 
 	public function testCheckDependencies() {
@@ -96,10 +99,11 @@ class BackendConfigTest extends \Test\TestCase {
 		$backend->setHasDependencies(true);
 
 		$dependencies = $backend->checkDependencies();
-		$this->assertCount(1, $dependencies);
+		$this->assertCount(2, $dependencies);
 		$this->assertEquals('dependency', $dependencies[0]->getDependency());
 		$this->assertEquals('missing dependency', $dependencies[0]->getMessage());
-		$this->assertEquals($backend, $dependencies[0]->getBackend());
+		$this->assertEquals('program', $dependencies[1]->getDependency());
+		$this->assertEquals('cannot find program', $dependencies[1]->getMessage());
 	}
 
 }

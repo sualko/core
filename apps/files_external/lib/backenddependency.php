@@ -21,8 +21,6 @@
 
 namespace OCA\Files_External\Lib;
 
-use \OCA\Files_External\Lib\BackendConfig;
-
 /**
  * External storage backend dependency
  */
@@ -31,47 +29,36 @@ class BackendDependency {
 	/** @var string */
 	private $dependency;
 
-	/** @var BackendConfig Backend to which the dependency applies */
-	private $backend;
-
 	/** @var string|null Custom message */
 	private $message = null;
 
 	/**
 	 * @param string $dependency
-	 * @param BackendConfig $backend
 	 */
-	public function __construct($dependency, BackendConfig $backend) {
+	public function __construct($dependency) {
 		$this->dependency = $dependency;
-		$this->backend = $backend;
 	}
 
-    /**
-     * @return string
-     */
-    public function getDependency() {
-        return $this->dependency;
-    }
+	/**
+	 * @return string
+	 */
+	public function getDependency() {
+		return $this->dependency;
+	}
 
-    /**
-     * @return BackendConfig
-     */
-    public function getBackend() {
-        return $this->backend;
-    }
+	/**
+	 * @return string|null
+	 */
+	public function getMessage() {
+		return $this->message;
+	}
 
-    /**
-     * @return string|null
-     */
-    public function getMessage() {
-        return $this->message;
-    }
-
-    /**
-     * @param string|null $message
+	/**
+	 * @param string $message
 	 * @return self
-     */
-    public function setMessage($message) {
-        $this->message = $message;
-    }
+	 */
+	public function setMessage($message) {
+		$this->message = $message;
+		return $this;
+	}
 }
