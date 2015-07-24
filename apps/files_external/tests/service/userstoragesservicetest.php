@@ -56,6 +56,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 		return $this->makeStorageConfig([
 			'mountPoint' => 'mountpoint',
 			'backendClass' => '\OC\Files\Storage\SMB',
+			'authMechanismClass' => '\Auth\Mechanism',
 			'backendOptions' => [
 				'option1' => 'value1',
 				'option2' => 'value2',
@@ -78,6 +79,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 
 		$this->assertEquals($storage->getMountPoint(), $newStorage->getMountPoint());
 		$this->assertEquals($storage->getBackend(), $newStorage->getBackend());
+		$this->assertEquals($storage->getAuthMechanism(), $newStorage->getAuthMechanism());
 		$this->assertEquals($storage->getBackendOptions(), $newStorage->getBackendOptions());
 		$this->assertEquals(1, $newStorage->getId());
 		$this->assertEquals(0, $newStorage->getStatus());
@@ -100,6 +102,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 		$storage = $this->makeStorageConfig([
 			'mountPoint' => 'mountpoint',
 			'backendClass' => '\OC\Files\Storage\SMB',
+			'authMechanismClass' => '\Auth\Mechanism',
 			'backendOptions' => [
 				'option1' => 'value1',
 				'option2' => 'value2',
@@ -193,6 +196,7 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 		$mountPointOptions = current($mountPointData);
 		$this->assertEquals(1, $mountPointOptions['id']);
 		$this->assertEquals('\OC\Files\Storage\SMB', $mountPointOptions['class']);
+		$this->assertEquals('\Auth\Mechanism', $mountPointOptions['authMechanism']);
 		$this->assertEquals(false, $mountPointOptions['mountOptions']['preview']);
 
 		$backendOptions = $mountPointOptions['options'];
@@ -216,12 +220,14 @@ class UserStoragesServiceTest extends StoragesServiceTest {
 
 		$legacyConfig = [
 			'class' => '\OC\Files\Storage\SMB',
+			'authMechanism' => '\Auth\Mechanism',
 			'options' => $legacyBackendOptions,
 			'mountOptions' => ['preview' => false],
 		];
 		// different mount options
 		$legacyConfig2 = [
 			'class' => '\OC\Files\Storage\SMB',
+			'authMechanism' => '\Auth\Mechanism',
 			'options' => $legacyBackendOptions,
 			'mountOptions' => ['preview' => true],
 		];

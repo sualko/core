@@ -33,6 +33,7 @@ use \OCA\Files_external\Service\StoragesService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\AuthMechConfig;
 
 /**
  * Base class for storages controllers
@@ -77,6 +78,7 @@ abstract class StoragesController extends Controller {
 	 *
 	 * @param string $mountPoint storage mount point
 	 * @param string $backendClass backend class name
+	 * @param string $authMechanismClass authentication mechanism class name
 	 * @param array $backendOptions backend-specific options
 	 * @param array|null $mountOptions mount-specific options
 	 * @param array|null $applicableUsers users for which to mount the storage
@@ -88,6 +90,7 @@ abstract class StoragesController extends Controller {
 	protected function createStorage(
 		$mountPoint,
 		$backendClass,
+		$authMechanismClass,
 		$backendOptions,
 		$mountOptions = null,
 		$applicableUsers = null,
@@ -98,6 +101,7 @@ abstract class StoragesController extends Controller {
 			return $this->service->createStorage(
 				$mountPoint,
 				$backendClass,
+				$authMechanismClass,
 				$backendOptions,
 				$mountOptions,
 				$applicableUsers,
@@ -107,7 +111,7 @@ abstract class StoragesController extends Controller {
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(
 				[
-					'message' => (string)$this->l10n->t('Invalid backend class "%s"', [$backendClass])
+					'message' => (string)$this->l10n->t('Invalid backend or authentication mechanism class')
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -134,6 +138,8 @@ abstract class StoragesController extends Controller {
 
 		/** @var BackendConfig */
 		$backend = $storage->getBackend();
+		/** @var AuthMechConfig */
+		$authMechanism = $storage->getAuthMechanism();
 		if (!$backend || $backend->checkDependencies()) {
 			// invalid backend
 			return new DataResponse(
@@ -154,6 +160,15 @@ abstract class StoragesController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+		if (!$authMechanism->validateStorage($storage)) {
+			// unsatisfied parameters
+			return new DataResponse(
+				[
+					'message' => (string)$this->l10n->t('Unsatisfied authentication mechanism parameters')
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
 		return null;
 	}
@@ -167,11 +182,17 @@ abstract class StoragesController extends Controller {
 	 * @param StorageConfig $storage storage configuration
 	 */
 	protected function updateStorageStatus(StorageConfig &$storage) {
+		// Load authentication mechanism data
+		$authMechanism = $storage->getAuthMechanism()->getClass();
+		/** @var IMechanism */
+		$auth = new $authMechanism($storage->getBackendOptions());
+		$options = array_merge($storage->getBackendOptions(), $auth->toParams());
+
 		// update status (can be time-consuming)
 		$storage->setStatus(
 			\OC_Mount_Config::getBackendStatus(
 				$storage->getBackend()->getClass(),
-				$storage->getBackendOptions(),
+				$options,
 				false
 			)
 		);

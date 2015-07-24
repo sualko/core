@@ -1,0 +1,55 @@
+<?php
+/**
+ * @author Robin McCorkell <rmccorkell@owncloud.com>
+ *
+ * @copyright Copyright (c) 2015, ownCloud, Inc.
+ * @license AGPL-3.0
+ *
+ * This code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License, version 3,
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ *
+ */
+
+namespace OCA\Files_External\Lib\Auth\Password;
+
+use \OCA\Files_External\Lib\Auth\IMechanism;
+
+/**
+ * Basic password authentication mechanism
+ * Implements AuthMechConfig::SCHEME_PASSWORD
+ */
+class Basic implements IMechanism {
+
+	/** @var string */
+	protected $username;
+
+	/** @var string */
+	protected $password;
+
+	/**
+	 * @param array $params
+	 */
+	public function __construct($params) {
+		$this->username = $params['user'];
+		$this->password = $params['password'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function toParams() {
+		return [
+			'user' => $this->username,
+			'password' => $this->password
+		];
+	}
+}

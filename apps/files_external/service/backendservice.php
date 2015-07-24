@@ -25,6 +25,7 @@ use \OCP\IConfig;
 use \OCP\IL10N;
 
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\AuthMechConfig;
 use \OCA\Files_External\Lib\BackendParameter as Param;
 
 /**
@@ -47,6 +48,9 @@ class BackendService {
 	/** @var BackendConfig[] */
 	private $backends = [];
 
+	/** @var AuthMechConfig[] */
+	private $authMechanisms = [];
+
 	/**
 	 * @param IConfig $config
 	 * @param IL10N $l10n
@@ -67,6 +71,7 @@ class BackendService {
 		);
 
 		$this->loadBackends();
+		$this->loadAuthMechanisms();
 	}
 
 	/**
@@ -79,6 +84,15 @@ class BackendService {
 			$backend->setVisibility(BackendConfig::VISIBILITY_ADMIN);
 		}
 		$this->backends[$backend->getClass()] = $backend;
+	}
+
+	/**
+	 * Register an authentication mechanism
+	 *
+	 * @param AuthMechConfig $authMech
+	 */
+	public function registerAuthMechanism(AuthMechConfig $authMech) {
+		$this->authMechanisms[$authMech->getClass()] = $authMech;
 	}
 
 	/**
@@ -119,6 +133,38 @@ class BackendService {
 	public function getBackend($class) {
 		if (isset($this->backends[$class])) {
 			return $this->backends[$class];
+		}
+		return null;
+	}
+
+	/**
+	 * Get all authentication mechanisms
+	 *
+	 * @return AuthMechConfig[]
+	 */
+	public function getAuthMechanisms() {
+		return $this->authMechanisms;
+	}
+
+	/**
+	 * Get all authentication mechanisms for schemes
+	 *
+	 * @param string[] $schemes
+	 * @return AuthMechConfig[]
+	 */
+	public function getAuthMechanismsByScheme(array $schemes) {
+		return array_filter($this->getAuthMechanisms(), function($authMech) use ($schemes) {
+			return in_array($authMech->getScheme(), $schemes, true);
+		});
+	}
+
+	/**
+	 * @param string $class
+	 * @return AuthMechConfig|null
+	 */
+	public function getAuthMechanism($class) {
+		if (isset($this->authMechanisms[$class])) {
+			return $this->authMechanisms[$class];
 		}
 		return null;
 	}
@@ -198,15 +244,14 @@ class BackendService {
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\FTP', $l->t('FTP'), [
 				(new Param('host', $l->t('Host'))),
-				(new Param('user', $l->t('Username'))),
-				(new Param('password', $l->t('Password')))
-					->setType(Param::VALUE_PASSWORD),
 				(new Param('root', $l->t('Remote subfolder')))
 					->setFlag(Param::FLAG_OPTIONAL),
 				(new Param('secure', $l->t('Secure ftps://')))
 					->setType(Param::VALUE_BOOLEAN),
 			]))
 			->setHasDependencies(true)
+			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
+			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);
 
 		$this->registerBackend(
@@ -251,14 +296,13 @@ class BackendService {
 			$this->registerBackend(
 				(new BackendConfig('\OC\Files\Storage\SMB', $l->t('SMB / CIFS'), [
 					(new Param('host', $l->t('Host'))),
-					(new Param('user', $l->t('Username'))),
-					(new Param('password', $l->t('Password')))
-						->setType(Param::VALUE_PASSWORD),
 					(new Param('share', $l->t('Share'))),
 					(new Param('root', $l->t('Remote subfolder')))
 						->setFlag(Param::FLAG_OPTIONAL),
 				]))
 				->setHasDependencies(true)
+				->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
+				->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 			);
 
 			$this->registerBackend(
@@ -279,39 +323,36 @@ class BackendService {
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\DAV', $l->t('WebDAV'), [
 				(new Param('host', $l->t('URL'))),
-				(new Param('user', $l->t('Username'))),
-				(new Param('password', $l->t('Password')))
-					->setType(Param::VALUE_PASSWORD),
 				(new Param('root', $l->t('Remote subfolder')))
 					->setFlag(Param::FLAG_OPTIONAL),
 				(new Param('secure', $l->t('Secure https://')))
 					->setType(Param::VALUE_BOOLEAN),
 			]))
 			->setHasDependencies(true)
+			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
+			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\OwnCloud', $l->t('ownCloud'), [
 				(new Param('host', $l->t('URL'))),
-				(new Param('user', $l->t('Username'))),
-				(new Param('password', $l->t('Password')))
-					->setType(Param::VALUE_PASSWORD),
 				(new Param('root', $l->t('Remote subfolder')))
 					->setFlag(Param::FLAG_OPTIONAL),
 				(new Param('secure', $l->t('Secure https://')))
 					->setType(Param::VALUE_BOOLEAN),
 			]))
+			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
+			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\SFTP', $l->t('SFTP'), [
 				(new Param('host', $l->t('Host'))),
-				(new Param('user', $l->t('Username'))),
-				(new Param('password', $l->t('Password')))
-					->setType(Param::VALUE_PASSWORD),
 				(new Param('root', $l->t('Root')))
 					->setFlag(Param::FLAG_OPTIONAL),
 			]))
+			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
+			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);
 
 		$this->registerBackend(
@@ -325,6 +366,29 @@ class BackendService {
 					->setFlag(Param::FLAG_OPTIONAL),
 			]))
 			->setCustomJs('sftp_key')
+		);
+	}
+
+	/**
+	 * Load authentication mechanisms
+	 */
+	protected function loadAuthMechanisms() {
+		$l = $this->l10n;
+
+		$this->registerAuthMechanism(
+			(new AuthMechConfig(AuthMechConfig::SCHEME_NULL,
+				'\OCA\Files_External\Lib\Auth\NullMechanism', $l->t('None'), []
+			))
+		);
+
+		// AuthMechConfig::SCHEME_PASSWORD mechanisms
+		$this->registerAuthMechanism(
+			(new AuthMechConfig(AuthMechConfig::SCHEME_PASSWORD,
+				'\OCA\Files_External\Lib\Auth\Password\Basic', $l->t('Username and password'), [
+					(new Param('user', $l->t('Username'))),
+					(new Param('password', $l->t('Password')))
+						->setType(Param::VALUE_PASSWORD),
+			]))
 		);
 	}
 }

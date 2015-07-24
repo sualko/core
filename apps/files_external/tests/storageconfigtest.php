@@ -23,14 +23,17 @@ namespace OCA\Files_external\Tests;
 
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\AuthMechConfig;
 
 class StorageConfigTest extends \Test\TestCase {
 
 	public function testJsonSerialization() {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
+		$authMechConfig = new AuthMechConfig(0, '\Auth\Mechanism', 'auth', []);
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('test');
 		$storageConfig->setBackend($backendConfig);
+		$storageConfig->setAuthMechanism($authMechConfig);
 		$storageConfig->setBackendOptions(['user' => 'test', 'password' => 'password123']);
 		$storageConfig->setPriority(128);
 		$storageConfig->setApplicableUsers(['user1', 'user2']);
@@ -42,6 +45,7 @@ class StorageConfigTest extends \Test\TestCase {
 		$this->assertEquals(1, $json['id']);
 		$this->assertEquals('/test', $json['mountPoint']);
 		$this->assertEquals('\OC\Files\Storage\SMB', $json['backendClass']);
+		$this->assertEquals('\Auth\Mechanism', $json['authMechanismClass']);
 		$this->assertEquals('test', $json['backendOptions']['user']);
 		$this->assertEquals('password123', $json['backendOptions']['password']);
 		$this->assertEquals(128, $json['priority']);

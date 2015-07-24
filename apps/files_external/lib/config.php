@@ -121,7 +121,9 @@ class OC_Mount_Config {
 				if (!isset($options['priority'])) {
 					$options['priority'] = $backend->getPriority();
 				}
-
+				if (!isset($options['authMechanism'])) {
+					$options['authMechanism'] = $backend->getLegacyAuthMechanismClass();
+				}
 
 				// Override if priority greater
 				if ((!isset($mountPoints[$mountPoint]))
@@ -146,6 +148,9 @@ class OC_Mount_Config {
 				$options['options'] = self::decryptPasswords($options['options']);
 				if (!isset($options['priority'])) {
 					$options['priority'] = $backend->getPriority();
+				}
+				if (!isset($options['authMechanism'])) {
+					$options['authMechanism'] = $backend->getLegacyAuthMechanismClass();
 				}
 
 				// Override if priority greater
@@ -172,6 +177,9 @@ class OC_Mount_Config {
 						$options['options'] = self::decryptPasswords($options['options']);
 						if (!isset($options['priority'])) {
 							$options['priority'] = $backend->getPriority();
+						}
+						if (!isset($options['authMechanism'])) {
+							$options['authMechanism'] = $backend->getLegacyAuthMechanismClass();
 						}
 
 						// Override if priority greater or if priority type different
@@ -202,6 +210,9 @@ class OC_Mount_Config {
 						if (!isset($options['priority'])) {
 							$options['priority'] = $backend->getPriority();
 						}
+						if (!isset($options['authMechanism'])) {
+							$options['authMechanism'] = $backend->getLegacyAuthMechanismClass();
+						}
 
 						// Override if priority greater or if priority type different
 						if ((!isset($mountPoints[$mountPoint]))
@@ -225,6 +236,9 @@ class OC_Mount_Config {
 				if ($backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
 					$options['personal'] = true;
 					$options['options'] = self::decryptPasswords($options['options']);
+					if (!isset($options['authMechanism'])) {
+						$options['authMechanism'] = $backend->getLegacyAuthMechanismClass();
+					}
 
 					// Always override previous config
 					$options['priority_type'] = self::MOUNT_TYPE_PERSONAL;

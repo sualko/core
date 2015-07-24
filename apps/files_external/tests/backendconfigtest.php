@@ -35,6 +35,8 @@ class BackendConfigTest extends \Test\TestCase {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', [$param]);
 		$backendConfig->setPriority(123);
 		$backendConfig->setCustomJs('foo/bar.js');
+		$backendConfig->addAuthScheme('foopass');
+		$backendConfig->addAuthScheme('barauth');
 
 		$json = $backendConfig->jsonSerialize();
 
@@ -44,6 +46,9 @@ class BackendConfigTest extends \Test\TestCase {
 
 		$configuration = $json['configuration'];
 		$this->assertArrayHasKey('foo', $configuration);
+
+		$this->assertContains('foopass', $json['authSchemes']);
+		$this->assertContains('barauth', $json['authSchemes']);
 	}
 
 	public function validateStorageProvider() {

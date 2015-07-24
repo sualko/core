@@ -27,6 +27,7 @@ use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_External\Lib\BackendConfig;
 use \OCA\Files_External\Lib\BackendService;
+use \OCA\Files_External\Lib\AuthMechConfig;
 
 abstract class StoragesServiceTest extends \Test\TestCase {
 
@@ -61,24 +62,46 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 		);
 		\OC_Mount_Config::$skipTest = true;
 
+		// prepare BackendService mock
 		$this->backendService =
 			$this->getMockBuilder('\OCA\Files_External\Service\BackendService')
 			->disableOriginalConstructor()
 			->getMock();
+
 		$backends = [
 			'\OC\Files\Storage\SMB' => (new BackendConfig('\OC\Files\Storage\SMB', 'smb', [])),
+			'\OC\Files\Storage\SFTP' => (new BackendConfig('\OC\Files\Storage\SFTP', 'sftp', []))
+				->setLegacyAuthMechanismClass('\Other\Auth\Mechanism'),
 		];
-		$this->backendService->expects($this->any())
-			->method('getBackend')
+		$this->backendService->method('getBackend')
 			->will($this->returnCallback(function($backendClass) use ($backends) {
 				if (isset($backends[$backendClass])) {
 					return $backends[$backendClass];
 				}
 				return null;
 			}));
-		$this->backendService->expects($this->any())
-			->method('getBackends')
+		$this->backendService->method('getBackends')
 			->will($this->returnValue($backends));
+
+		$authMechanisms = [
+			'\Auth\Mechanism' => (new AuthMechConfig('null', '\Auth\Mechanism', 'auth', [])),
+			'\Other\Auth\Mechanism' => (new AuthMechConfig('null', '\Other\Auth\Mechanism', 'auth', [])),
+		];
+		$this->backendService->method('getAuthMechanism')
+			->will($this->returnCallback(function($class) use ($authMechanisms) {
+				if (isset($authMechanisms[$class])) {
+					return $authMechanisms[$class];
+				}
+				return null;
+			}));
+		$this->backendService->method('getAuthMechanismsByScheme')
+			->will($this->returnCallback(function($schemes) use ($authMechanisms) {
+				return array_filter($authMechanisms, function ($authMech) use ($schemes) {
+					return in_array($authMech->getScheme(), $schemes, true);
+				});
+			}));
+		$this->backendService->method('getAuthMechanisms')
+			->will($this->returnValue($authMechanisms));
 
 		\OCP\Util::connectHook(
 			Filesystem::CLASSNAME,
@@ -114,7 +137,11 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 			// so $data['backend'] can be specified directly
 			$data['backend'] = $this->backendService->getBackend($data['backendClass']);
 		}
+		if (!isset($data['authMechanism'])) {
+			$data['authMechanism'] = $this->backendService->getAuthMechanism($data['authMechanismClass']);
+		}
 		$storage->setBackend($data['backend']);
+		$storage->setAuthMechanism($data['authMechanism']);
 		$storage->setBackendOptions($data['backendOptions']);
 		if (isset($data['applicableUsers'])) {
 			$storage->setApplicableUsers($data['applicableUsers']);
@@ -137,17 +164,21 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 	 */
 	public function testNonExistingStorage() {
 		$backend = $this->backendService->getBackend('\OC\Files\Storage\SMB');
+		$authMechanism = $this->backendService->getAuthMechanism('\Auth\Mechanism');
 		$storage = new StorageConfig(255);
 		$storage->setMountPoint('mountpoint');
 		$storage->setBackend($backend);
+		$storage->setAuthMechanism($authMechanism);
 		$this->service->updateStorage($storage);
 	}
 
 	public function testDeleteStorage() {
 		$backend = $this->backendService->getBackend('\OC\Files\Storage\SMB');
+		$authMechanism = $this->backendService->getAuthMechanism('\Auth\Mechanism');
 		$storage = new StorageConfig(255);
 		$storage->setMountPoint('mountpoint');
 		$storage->setBackend($backend);
+		$storage->setAuthMechanism($authMechanism);
 		$storage->setBackendOptions(['password' => 'testPassword']);
 
 		$newStorage = $this->service->addStorage($storage);
@@ -175,6 +206,7 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 	public function testCreateStorage() {
 		$mountPoint = 'mount';
 		$class = '\OC\Files\Storage\SMB';
+		$authMechanismClass = '\Auth\Mechanism';
 		$backendOptions = ['param' => 'foo', 'param2' => 'bar'];
 		$mountOptions = ['option' => 'foobar'];
 		$applicableUsers = ['user1', 'user2'];
@@ -182,10 +214,12 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 		$priority = 123;
 
 		$backend = $this->backendService->getBackend($class);
+		$authMechanism = $this->backendService->getAuthMechanism($authMechanismClass);
 
 		$storage = $this->service->createStorage(
 			$mountPoint,
 			$class,
+			$authMechanismClass,
 			$backendOptions,
 			$mountOptions,
 			$applicableUsers,
@@ -195,6 +229,7 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 
 		$this->assertEquals('/'.$mountPoint, $storage->getMountPoint());
 		$this->assertEquals($backend, $storage->getBackend());
+		$this->assertEquals($authMechanism, $storage->getAuthMechanism());
 		$this->assertEquals($backendOptions, $storage->getBackendOptions());
 		$this->assertEquals($mountOptions, $storage->getMountOptions());
 		$this->assertEquals($applicableUsers, $storage->getApplicableUsers());
@@ -209,10 +244,22 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 		$this->service->createStorage(
 			'mount',
 			'\OC\Not\A\Backend',
+			'\Auth\Mechanism',
 			[]
 		);
 	}
 
+	/**
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function testCreateStorageInvalidAuthMechanismClass() {
+		$this->service->createStorage(
+			'mount',
+			'\OC\Files\Storage\SMB',
+			'\Not\An\Auth\Mechanism',
+			[]
+		);
+	}
 	public static function createHookCallback($params) {
 		self::$hookCalls[] = array(
 			'signal' => Filesystem::signal_create_mount,

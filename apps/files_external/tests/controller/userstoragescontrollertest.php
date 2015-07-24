@@ -26,6 +26,7 @@ use \OCP\AppFramework\Http;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_External\Lib\StorageConfig;
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\AuthMechConfig;
 
 class UserStoragesControllerTest extends StoragesControllerTest {
 
@@ -51,10 +52,12 @@ class UserStoragesControllerTest extends StoragesControllerTest {
 	public function testAddOrUpdateStorageDisallowedBackend() {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
 		$backendConfig->setVisibility(BackendConfig::VISIBILITY_ADMIN);
+		$authMechConfig = new AuthMechConfig('null', '\Auth\Mechanism', 'auth', []);
 
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');
 		$storageConfig->setBackend($backendConfig);
+		$storageConfig->setAuthMechanism($authMechConfig);
 		$storageConfig->setBackendOptions([]);
 
 		$this->service->expects($this->exactly(2))
@@ -68,6 +71,7 @@ class UserStoragesControllerTest extends StoragesControllerTest {
 		$response = $this->controller->create(
 			'mount',
 			'\OC\Files\Storage\SMB',
+			'\Auth\Mechanism',
 			array(),
 			[],
 			[],
@@ -81,6 +85,7 @@ class UserStoragesControllerTest extends StoragesControllerTest {
 			1,
 			'mount',
 			'\OC\Files\Storage\SMB',
+			'\Auth\Mechanism',
 			array(),
 			[],
 			[],

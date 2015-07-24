@@ -26,6 +26,7 @@ use \OCA\Files_external\Service\GlobalStoragesService;
 use \OCA\Files_external\NotFoundException;
 use \OCA\Files_external\Lib\StorageConfig;
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\AuthMechConfig;
 
 class GlobalStoragesServiceTest extends StoragesServiceTest {
 	public function setUp() {
@@ -42,6 +43,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		return $this->makeStorageConfig([ 
 			'mountPoint' => 'mountpoint',
 			'backendClass' => '\OC\Files\Storage\SMB',
+			'authMechanismClass' => '\Auth\Mechanism',
 			'backendOptions' => [
 				'option1' => 'value1',
 				'option2' => 'value2',
@@ -58,12 +60,14 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 
 	function storageDataProvider() {
 		$backend = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
+		$authMechanism = new AuthMechConfig('null', '\Auth\Mechanism', 'auth', []);
 		return [
 			// all users
 			[
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
 					'backend' => $backend,
+					'authMechanism' => $authMechanism,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -79,6 +83,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
 					'backend' => $backend,
+					'authMechanism' => $authMechanism,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -94,6 +99,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
 					'backend' => $backend,
+					'authMechanism' => $authMechanism,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -109,6 +115,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 				$this->makeStorageConfig([
 					'mountPoint' => 'mountpoint',
 					'backend' => $backend,
+					'authMechanism' => $authMechanism,
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -135,6 +142,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 
 		$this->assertEquals($storage->getMountPoint(), $newStorage->getMountPoint());
 		$this->assertEquals($storage->getBackend(), $newStorage->getBackend());
+		$this->assertEquals($storage->getAuthMechanism(), $newStorage->getAuthMechanism());
 		$this->assertEquals($storage->getBackendOptions(), $newStorage->getBackendOptions());
 		$this->assertEquals($storage->getApplicableUsers(), $newStorage->getApplicableUsers());
 		$this->assertEquals($storage->getApplicableGroups(), $newStorage->getApplicableGroups());
@@ -154,6 +162,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		$storage = $this->makeStorageConfig([
 			'mountPoint' => 'mountpoint',
 			'backendClass' => '\OC\Files\Storage\SMB',
+			'authMechanismClass' => '\Auth\Mechanism',
 			'backendOptions' => [
 				'option1' => 'value1',
 				'option2' => 'value2',
@@ -641,6 +650,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		$mountPointOptions = current($mountPointData);
 		$this->assertEquals(1, $mountPointOptions['id']);
 		$this->assertEquals('\OC\Files\Storage\SMB', $mountPointOptions['class']);
+		$this->assertEquals('\Auth\Mechanism', $mountPointOptions['authMechanism']);
 		$this->assertEquals(15, $mountPointOptions['priority']);
 		$this->assertEquals(false, $mountPointOptions['mountOptions']['preview']);
 
@@ -681,6 +691,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 
 			$this->assertEquals(1, $mountPointOptions['id']);
 			$this->assertEquals('\OC\Files\Storage\SMB', $mountPointOptions['class']);
+			$this->assertEquals('\Auth\Mechanism', $mountPointOptions['authMechanism']);
 			$this->assertEquals(15, $mountPointOptions['priority']);
 			$this->assertEquals(false, $mountPointOptions['mountOptions']['preview']);
 
@@ -698,6 +709,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 
 			$this->assertEquals(1, $mountPointOptions['id']);
 			$this->assertEquals('\OC\Files\Storage\SMB', $mountPointOptions['class']);
+			$this->assertEquals('\Auth\Mechanism', $mountPointOptions['authMechanism']);
 			$this->assertEquals(15, $mountPointOptions['priority']);
 			$this->assertEquals(false, $mountPointOptions['mountOptions']['preview']);
 
@@ -723,12 +735,14 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 
 		$legacyConfig = [
 			'class' => '\OC\Files\Storage\SMB',
+			'authMechanism' => '\Auth\Mechanism',
 			'options' => $legacyBackendOptions,
 			'mountOptions' => ['preview' => false],
 		];
 		// different mount options
 		$legacyConfig2 = [
 			'class' => '\OC\Files\Storage\SMB',
+			'authMechanism' => '\Auth\Mechanism',
 			'options' => $legacyBackendOptions,
 			'mountOptions' => ['preview' => true],
 		];
@@ -740,6 +754,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		// different config
 		$legacyConfig3 = [
 			'class' => '\OC\Files\Storage\SMB',
+			'authMechanism' => '\Auth\Mechanism',
 			'options' => $legacyBackendOptions2,
 			'mountOptions' => ['preview' => true],
 		];
@@ -812,5 +827,45 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 		$this->assertEquals(['user5'], $storage4->getApplicableUsers());
 		$this->assertEquals([], $storage4->getApplicableGroups());
 		$this->assertEquals(['preview' => true], $storage4->getMountOptions());
+	}
+
+	public function testReadLegacyConfigNoAuthMechanism() {
+		$configFile = $this->dataDir . '/mount.json';
+
+		$json = [
+			'user' => [
+				'user1' => [
+					'/$user/files/somemount' => [
+						'class' => '\OC\Files\Storage\SFTP',
+						'authMechanism' => '\Auth\Mechanism',
+						'options' => [],
+						'mountOptions' => [],
+					],
+					'/$user/files/othermount' => [
+						'class' => '\OC\Files\Storage\SFTP',
+						// no authMechanism
+						'options' => [],
+						'mountOptions' => [],
+					],
+				]
+			]
+		];
+
+		file_put_contents($configFile, json_encode($json));
+
+		$allStorages = $this->service->getAllStorages();
+
+		$this->assertCount(2, $allStorages);
+
+		$storage1 = $allStorages[1];
+		$storage2 = $allStorages[2];
+
+		$this->assertEquals('/somemount', $storage1->getMountPoint());
+		$this->assertEquals('\OC\Files\Storage\SFTP', $storage1->getBackend()->getClass());
+		$this->assertEquals('\Auth\Mechanism', $storage1->getAuthMechanism()->getClass());
+
+		$this->assertEquals('/othermount', $storage2->getMountPoint());
+		$this->assertEquals('\OC\Files\Storage\SFTP', $storage2->getBackend()->getClass());
+		$this->assertEquals('\Other\Auth\Mechanism', $storage2->getAuthMechanism()->getClass());
 	}
 }

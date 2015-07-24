@@ -72,7 +72,19 @@ abstract class StoragesService {
 		$storageOptions
 	) {
 		$backend = $this->backendService->getBackend($storageOptions['class']);
+		if (!$backend) {
+			throw new \UnexpectedValueException('Invalid backend class');
+		}
 		$storageConfig->setBackend($backend);
+
+		if (!isset($storageOptions['authMechanism'])) {
+			$storageOptions['authMechanism'] = $backend->getLegacyAuthMechanismClass();
+		}
+		$authMechanism = $this->backendService->getAuthMechanism($storageOptions['authMechanism']);
+		if (!$authMechanism) {
+			throw new \UnexpectedValueException('Invalid authentication mechanism class');
+		}
+		$storageConfig->setAuthMechanism($authMechanism);
 
 		$storageConfig->setBackendOptions($storageOptions['options']);
 		if (isset($storageOptions['mountOptions'])) {
@@ -118,6 +130,7 @@ abstract class StoragesService {
 		 *     - "priority": storage priority
 		 *     - "backend": backend class name
 		 *     - "options": backend-specific options
+		 *     - "authMechanism": authentication mechanism class name
 		 *     - "mountOptions": mount-specific options (ex: disable previews, scanner, etc)
 		 */
 
@@ -237,6 +250,7 @@ abstract class StoragesService {
 		$options = [
 			'id' => $storageConfig->getId(),
 			'class' => $storageConfig->getBackend()->getClass(),
+			'authMechanism' => $storageConfig->getAuthMechanism()->getClass(),
 			'options' => $storageConfig->getBackendOptions(),
 		];
 
@@ -315,6 +329,7 @@ abstract class StoragesService {
 	 *
 	 * @param string $mountPoint storage mount point
 	 * @param string $backendClass backend class name
+	 * @param string $authMechanismClass authentication mechanism class
 	 * @param array $backendOptions backend-specific options
 	 * @param array|null $mountOptions mount-specific options
 	 * @param array|null $applicableUsers users for which to mount the storage
@@ -326,6 +341,7 @@ abstract class StoragesService {
 	public function createStorage(
 		$mountPoint,
 		$backendClass,
+		$authMechanismClass,
 		$backendOptions,
 		$mountOptions = null,
 		$applicableUsers = null,
@@ -336,9 +352,14 @@ abstract class StoragesService {
 		if (!$backend) {
 			throw new \InvalidArgumentException('Unable to get backend for backend class '.$backendClass);
 		}
+		$authMechanism = $this->backendService->getAuthMechanism($authMechanismClass);
+		if (!$authMechanism) {
+			throw new \InvalidArgumentException('Unable to get authentication mechanism for class '.$authMechanismClass);
+		}
 		$newStorage = new StorageConfig();
 		$newStorage->setMountPoint($mountPoint);
 		$newStorage->setBackend($backend);
+		$newStorage->setAuthMechanism($authMechanism);
 		$newStorage->setBackendOptions($backendOptions);
 		if (isset($mountOptions)) {
 			$newStorage->setMountOptions($mountOptions);

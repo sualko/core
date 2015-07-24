@@ -47,6 +47,12 @@ class BackendConfig implements \JsonSerializable {
 	/** @var string human-readable backend name */
 	private $text;
 
+	/** @var array 'scheme' => true, supported authentication schemes */
+	private $authSchemes = [];
+
+	/** @var string authentication mechanism fallback */
+	private $legacyAuthMechanismClass = '\OCA\Files_External\Lib\Auth\NullMechanism';
+
 	/** @var BackendParameter[] parameters for backend */
 	private $parameters = [];
 
@@ -85,6 +91,38 @@ class BackendConfig implements \JsonSerializable {
 	 */
 	public function getText() {
 		return $this->text;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getAuthSchemes() {
+		return $this->authSchemes;
+	}
+
+	/**
+	 * @param string $scheme
+	 * @return self
+	 */
+	public function addAuthScheme($scheme) {
+		$this->authSchemes[$scheme] = true;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLegacyAuthMechanismClass() {
+		return $this->legacyAuthMechanismClass;
+	}
+
+	/**
+	 * @param string $authMechanismClass
+	 * @return self
+	 */
+	public function setLegacyAuthMechanismClass($authMechanismClass) {
+		$this->legacyAuthMechanismClass = $authMechanismClass;
+		return $this;
 	}
 
 	/**
@@ -186,6 +224,7 @@ class BackendConfig implements \JsonSerializable {
 			'backend' => $this->getText(),
 			'priority' => $this->getPriority(),
 			'configuration' => $configuration,
+			'authSchemes' => $this->getAuthSchemes(),
 		];
 		if (isset($this->customJs)) {
 			$data['custom'] = $this->customJs;

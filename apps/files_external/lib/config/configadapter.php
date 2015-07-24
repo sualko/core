@@ -27,6 +27,7 @@ use OCP\Files\Storage\IStorageFactory;
 use OCA\Files_External\Lib\PersonalMount;
 use OCP\Files\Config\IMountProvider;
 use OCP\IUser;
+use OCA\Files_External\Lib\Auth\IMechanism;
 use OCA\Files_external\Service\UserStoragesService;
 
 /**
@@ -56,6 +57,13 @@ class ConfigAdapter implements IMountProvider {
 				$objectClass = $options['options']['objectstore']['class'];
 				$options['options']['objectstore'] = new $objectClass($options['options']['objectstore']);
 			}
+
+			// Load authentication mechanism data
+			$authMechanism = $options['authMechanism'];
+			/** @var IMechanism */
+			$auth = new $authMechanism($options['options']);
+			$options['options'] = array_merge($options['options'], $auth->toParams());
+
 			$mountOptions = isset($options['mountOptions']) ? $options['mountOptions'] : [];
 			if (isset($options['personal']) && $options['personal']) {
 				$mount = new PersonalMount($options['class'], $mountPoint, $options['options'], $loader, $mountOptions);
