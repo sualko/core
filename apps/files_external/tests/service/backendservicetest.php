@@ -74,54 +74,6 @@ class BackendServiceTest extends \Test\TestCase {
 		$service->registerBackend($backendNotAllowed);
 	}
 
-	public function testGetBackendsSorted() {
-		$service = new BackendService($this->config, $this->l10n);
-
-		$backendFirst = $this->getBackendMock('\Backend\First');
-		$backendFirst->method('getText')->willReturn('aaa');
-		$backendSecond = $this->getBackendMock('\Backend\Second');
-		$backendSecond->method('getText')->willReturn('bbb');
-		$backendThird = $this->getBackendMock('\Backend\Third');
-		$backendThird->method('getText')->willReturn('ccc');
-
-		$service->registerBackend($backendSecond);
-		$service->registerBackend($backendFirst);
-		$service->registerBackend($backendThird);
-
-		// bug with uasort and debug code, suppress errors
-		// https://bugs.php.net/bug.php?id=50688
-		$backends = @$service->getBackends();
-
-		$firstSeen = false;
-		$secondSeen = false;
-		$thirdSeen = false;
-		foreach ($backends as $class => $backend) {
-			switch ($class) {
-			case '\Backend\First':
-				$this->assertFalse($firstSeen);
-				$this->assertFalse($secondSeen);
-				$this->assertFalse($thirdSeen);
-				$firstSeen = true;
-				break;
-			case '\Backend\Second':
-				$this->assertTrue($firstSeen);
-				$this->assertFalse($secondSeen);
-				$this->assertFalse($thirdSeen);
-				$secondSeen = true;
-				break;
-			case '\Backend\Third':
-				$this->assertTrue($firstSeen);
-				$this->assertTrue($secondSeen);
-				$this->assertFalse($thirdSeen);
-				$thirdSeen = true;
-				break;
-			}
-		}
-		$this->assertTrue($firstSeen);
-		$this->assertTrue($secondSeen);
-		$this->assertTrue($thirdSeen);
-	}
-
 	public function testGetAvailableBackends() {
 		$service = new BackendService($this->config, $this->l10n);
 
@@ -141,9 +93,7 @@ class BackendServiceTest extends \Test\TestCase {
 		$service->registerBackend($backendAvailable);
 		$service->registerBackend($backendNotAvailable);
 
-		// bug with uasort and debug code, suppress errors
-		// https://bugs.php.net/bug.php?id=50688
-		$availableBackends = @$service->getAvailableBackends();
+		$availableBackends = $service->getAvailableBackends();
 		$this->assertArrayHasKey('\Backend\Available', $availableBackends);
 		$this->assertArrayNotHasKey('Backend\NotAvailable', $availableBackends);
 	}
@@ -165,9 +115,7 @@ class BackendServiceTest extends \Test\TestCase {
 		$service->registerBackend($backendAllowed);
 		$service->registerBackend($backendNotAllowed);
 
-		// bug with uasort and debug code, suppress errors
-		// https://bugs.php.net/bug.php?id=50688
-		$userBackends = @$service->getUserBackends();
+		$userBackends = $service->getUserBackends();
 		$this->assertArrayHasKey('\User\Mount\Allowed', $userBackends);
 		$this->assertArrayNotHasKey('\User\Mount\NotAllowed', $userBackends);
 	}

@@ -47,9 +47,6 @@ class BackendService {
 	/** @var BackendConfig[] */
 	private $backends = [];
 
-	/** @var bool If backends are sorted */
-	private $backendsSorted = false;
-
 	/**
 	 * @param IConfig $config
 	 * @param IL10N $l10n
@@ -82,7 +79,6 @@ class BackendService {
 			$backend->setVisibility(BackendConfig::VISIBILITY_ADMIN);
 		}
 		$this->backends[$backend->getClass()] = $backend;
-		$this->backendsSorted = false;
 	}
 
 	/**
@@ -91,12 +87,6 @@ class BackendService {
 	 * @return BackendConfig[]
 	 */
 	public function getBackends() {
-		if (!$this->backendsSorted) {
-			uasort($this->backends, function($a, $b) {
-				return strcasecmp($a->getText(), $b->getText());
-			});
-			$this->backendsSorted = true;
-		}
 		return $this->backends;
 	}
 

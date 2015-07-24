@@ -128,7 +128,13 @@
 							style="display:none;">
 							<?php p($l->t('Add storage')); ?>
 						</option>
-						<?php foreach ($_['backends'] as $backend): ?>
+						<?php
+							$sortedBackends = $_['backends'];
+							uasort($sortedBackends, function($a, $b) {
+								return strcasecmp($a->getText(), $b->getText());
+							});
+						?>
+						<?php foreach ($sortedBackends as $backend): ?>
 							<option value="<?php p($backend->getClass()); ?>"><?php p($backend->getText()); ?></option>
 						<?php endforeach; ?>
 					</select>
