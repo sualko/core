@@ -197,6 +197,40 @@ class CheckSetupControllerTest extends TestCase {
 		);
 	}
 
+	public function testForwardedForHeadersWorkingFalse() {
+		$this->config->expects($this->once())
+			->method('getSystemValue')
+			->with('trusted_proxies', [])
+			->willReturn(['1.2.3.4']);
+		$this->request->expects($this->once())
+			->method('getRemoteAddress')
+			->willReturn('1.2.3.4');
+
+		$this->assertFalse(
+			self::invokePrivate(
+				$this->checkSetupController,
+				'forwardedForHeadersWorking'
+			)
+		);
+	}
+
+	public function testForwardedForHeadersWorkingTrue() {
+		$this->config->expects($this->once())
+			->method('getSystemValue')
+			->with('trusted_proxies', [])
+			->willReturn(['1.2.3.4']);
+		$this->request->expects($this->once())
+			->method('getRemoteAddress')
+			->willReturn('4.3.2.1');
+
+		$this->assertTrue(
+			self::invokePrivate(
+				$this->checkSetupController,
+				'forwardedForHeadersWorking'
+			)
+		);
+	}
+
 	public function testCheck() {
 		$this->config->expects($this->at(0))
 			->method('getSystemValue')
@@ -206,6 +240,14 @@ class CheckSetupControllerTest extends TestCase {
 			->method('getSystemValue')
 			->with('memcache.local', null)
 			->will($this->returnValue('SomeProvider'));
+		$this->config->expects($this->at(2))
+			->method('getSystemValue')
+			->with('trusted_proxies', [])
+			->willReturn(['1.2.3.4']);
+
+		$this->request->expects($this->once())
+			->method('getRemoteAddress')
+			->willReturn('4.3.2.1');
 
 		$client = $this->getMockBuilder('\OCP\Http\Client\IClient')
 			->disableOriginalConstructor()->getMock();
@@ -232,6 +274,10 @@ class CheckSetupControllerTest extends TestCase {
 			->method('linkToDocs')
 			->with('admin-security')
 			->willReturn('https://doc.owncloud.org/server/8.1/admin_manual/configuration_server/hardening.html');
+		$this->urlGenerator->expects($this->at(2))
+			->method('linkToDocs')
+			->with('admin-reverse-proxy')
+			->willReturn('reverse-proxy-doc-link');
 
 		$expected = new DataResponse(
 			[
@@ -241,6 +287,8 @@ class CheckSetupControllerTest extends TestCase {
 				'memcacheDocs' => 'http://doc.owncloud.org/server/go.php?to=admin-performance',
 				'isUrandomAvailable' => self::invokePrivate($this->checkSetupController, 'isUrandomAvailable'),
 				'securityDocs' => 'https://doc.owncloud.org/server/8.1/admin_manual/configuration_server/hardening.html',
+				'forwardedForHeadersWorking' => true,
+				'reverseProxyDocs' => 'reverse-proxy-doc-link',
 			]
 		);
 		$this->assertEquals($expected, $this->checkSetupController->check());

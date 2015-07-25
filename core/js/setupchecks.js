@@ -69,6 +69,11 @@
 							t('core', '/dev/urandom is not readable by PHP which is highly discouraged for security reasons. Further information can be found in our <a href="{docLink}">documentation</a>.', {docLink: data.securityDocs})
 						);
 					}
+					if(!data.forwardedForHeadersWorking) {
+						messages.push(
+							t('core', 'The reverse proxy headers configuration is incorrect, or you are accessing ownCloud from a trusted proxy. If you are not accessing ownCloud from a trusted proxy, this is a security issue and can allow an attacker to spoof their IP address as visible to ownCloud. Further information can be found in our <a href="{docLink}">documentation</a>.', {docLink: data.reverseProxyDocs})
+						);
+					}
 				} else {
 					messages.push(t('core', 'Error occurred while checking server setup'));
 				}

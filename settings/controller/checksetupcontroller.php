@@ -110,6 +110,23 @@ class CheckSetupController extends Controller {
 	}
 
 	/**
+	 * Check if the reverse proxy configuration is working as expected
+	 *
+	 * @return bool
+	 */
+	private function forwardedForHeadersWorking() {
+		$trustedProxies = $this->config->getSystemValue('trusted_proxies', []);
+		$remoteAddress = $this->request->getRemoteAddress();
+
+		if (is_array($trustedProxies) && in_array($remoteAddress, $trustedProxies)) {
+			return false;
+		}
+
+		// either not enabled or working correctly
+		return true;
+	}
+
+	/**
 	 * @return DataResponse
 	 */
 	public function check() {
@@ -121,6 +138,8 @@ class CheckSetupController extends Controller {
 				'memcacheDocs' => $this->urlGenerator->linkToDocs('admin-performance'),
 				'isUrandomAvailable' => $this->isUrandomAvailable(),
 				'securityDocs' => $this->urlGenerator->linkToDocs('admin-security'),
+				'forwardedForHeadersWorking' => $this->forwardedForHeadersWorking(),
+				'reverseProxyDocs' => $this->urlGenerator->linkToDocs('admin-reverse-proxy'),
 			]
 		);
 	}
