@@ -306,7 +306,7 @@ class BackendService {
 			);
 
 			$this->registerBackend(
-				(new BackendConfig('\OC\Files\Storage\SMB_OC', $l->t(' SMB / CIFS using OC login'), [
+				(new BackendConfig('\OC\Files\Storage\SMB_OC', $l->t('SMB / CIFS using OC login'), [
 					(new Param('host', $l->t('Host'))),
 					(new Param('username_as_share', $l->t('Username as share')))
 						->setType(Param::VALUE_BOOLEAN),
