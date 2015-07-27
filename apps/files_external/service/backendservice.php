@@ -26,7 +26,7 @@ use \OCP\IL10N;
 
 use \OCA\Files_External\Lib\BackendConfig;
 use \OCA\Files_External\Lib\AuthMechConfig;
-use \OCA\Files_External\Lib\BackendParameter as Param;
+use \OCA\Files_External\Lib\BackendParameter;
 
 /**
  * Service class to manage backend definitions
@@ -199,7 +199,7 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\Local', $l->t('Local'), [
-				(new Param('datadir', $l->t('Location'))),
+				(new BackendParameter('datadir', $l->t('Location'))),
 			]))
 			->setVisibility(BackendConfig::VISIBILITY_ADMIN)
 			->setPriority(BackendConfig::PRIORITY_DEFAULT + 50)
@@ -207,35 +207,35 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\AmazonS3', $l->t('Amazon S3'), [
-				(new Param('key', $l->t('Access Key'))),
-				(new Param('secret', $l->t('Secret Key')))
-					->setType(Param::VALUE_PASSWORD),
-				(new Param('bucket', $l->t('Bucket'))),
-				(new Param('hostname', $l->t('Hostname')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('port', $l->t('Port')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('region', $l->t('Region')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('use_ssl', $l->t('Enable SSL')))
-					->setType(Param::VALUE_BOOLEAN),
-				(new Param('use_path_style', $l->t('Enable Path Style')))
-					->setType(Param::VALUE_BOOLEAN),
+				(new BackendParameter('key', $l->t('Access Key'))),
+				(new BackendParameter('secret', $l->t('Secret Key')))
+					->setType(BackendParameter::VALUE_PASSWORD),
+				(new BackendParameter('bucket', $l->t('Bucket'))),
+				(new BackendParameter('hostname', $l->t('Hostname')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('port', $l->t('Port')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('region', $l->t('Region')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('use_ssl', $l->t('Enable SSL')))
+					->setType(BackendParameter::VALUE_BOOLEAN),
+				(new BackendParameter('use_path_style', $l->t('Enable Path Style')))
+					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
 			->setHasDependencies(true)
 		);
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\Dropbox', $l->t('Dropbox'), [
-				(new Param('configured', 'configured'))
-					->setType(Param::VALUE_HIDDEN),
-				(new Param('app_key', $l->t('App key'))),
-				(new Param('app_secret', $l->t('App secret')))
-					->setType(Param::VALUE_PASSWORD),
-				(new Param('token', 'token'))
-					->setType(Param::VALUE_HIDDEN),
-				(new Param('token_secret', 'token_secret'))
-					->setType(Param::VALUE_HIDDEN),
+				(new BackendParameter('configured', 'configured'))
+					->setType(BackendParameter::VALUE_HIDDEN),
+				(new BackendParameter('app_key', $l->t('App key'))),
+				(new BackendParameter('app_secret', $l->t('App secret')))
+					->setType(BackendParameter::VALUE_PASSWORD),
+				(new BackendParameter('token', 'token'))
+					->setType(BackendParameter::VALUE_HIDDEN),
+				(new BackendParameter('token_secret', 'token_secret'))
+					->setType(BackendParameter::VALUE_HIDDEN),
 			]))
 			->setHasDependencies(true)
 			->setCustomJs('dropbox')
@@ -243,11 +243,11 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\FTP', $l->t('FTP'), [
-				(new Param('host', $l->t('Host'))),
-				(new Param('root', $l->t('Remote subfolder')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('secure', $l->t('Secure ftps://')))
-					->setType(Param::VALUE_BOOLEAN),
+				(new BackendParameter('host', $l->t('Host'))),
+				(new BackendParameter('root', $l->t('Remote subfolder')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('secure', $l->t('Secure ftps://')))
+					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
 			->setHasDependencies(true)
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
@@ -256,13 +256,13 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\Google', $l->t('Google Drive'), [
-				(new Param('configured', 'configured'))
-					->setType(Param::VALUE_HIDDEN),
-				(new Param('client_id', $l->t('Client ID'))),
-				(new Param('client_secret', $l->t('Client secret')))
-					->setType(Param::VALUE_PASSWORD),
-				(new Param('token', 'token'))
-					->setType(Param::VALUE_HIDDEN),
+				(new BackendParameter('configured', 'configured'))
+					->setType(BackendParameter::VALUE_HIDDEN),
+				(new BackendParameter('client_id', $l->t('Client ID'))),
+				(new BackendParameter('client_secret', $l->t('Client secret')))
+					->setType(BackendParameter::VALUE_PASSWORD),
+				(new BackendParameter('token', 'token'))
+					->setType(BackendParameter::VALUE_HIDDEN),
 			]))
 			->setHasDependencies(true)
 			->setCustomJs('google')
@@ -270,24 +270,24 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\Swift', $l->t('OpenStack Object Storage'), [
-				(new Param('user', $l->t('Username'))),
-				(new Param('bucket', $l->t('Bucket'))),
-				(new Param('region', $l->t('Region (optional for OpenStack Object Storage)')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('key', $l->t('API Key (required for Rackspace Cloud Files)')))
-					->setType(Param::VALUE_PASSWORD)
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('tenant', $l->t('Tenantname (required for OpenStack Object Storage)')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('password', $l->t('Password (required for OpenStack Object Storage)')))
-					->setType(Param::VALUE_PASSWORD)
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('service_name', $l->t('Service Name (required for OpenStack Object Storage)')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('url', $l->t('URL of identity endpoint (required for OpenStack Object Storage)')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('timeout', $l->t('Timeout of HTTP requests in seconds')))
-					->setFlag(Param::FLAG_OPTIONAL),
+				(new BackendParameter('user', $l->t('Username'))),
+				(new BackendParameter('bucket', $l->t('Bucket'))),
+				(new BackendParameter('region', $l->t('Region (optional for OpenStack Object Storage)')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('key', $l->t('API Key (required for Rackspace Cloud Files)')))
+					->setType(BackendParameter::VALUE_PASSWORD)
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('tenant', $l->t('Tenantname (required for OpenStack Object Storage)')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('password', $l->t('Password (required for OpenStack Object Storage)')))
+					->setType(BackendParameter::VALUE_PASSWORD)
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('service_name', $l->t('Service Name (required for OpenStack Object Storage)')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('url', $l->t('URL of identity endpoint (required for OpenStack Object Storage)')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('timeout', $l->t('Timeout of HTTP requests in seconds')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
 			]))
 			->setHasDependencies(true)
 		);
@@ -295,10 +295,10 @@ class BackendService {
 		if (!\OC_Util::runningOnWindows()) {
 			$this->registerBackend(
 				(new BackendConfig('\OC\Files\Storage\SMB', $l->t('SMB / CIFS'), [
-					(new Param('host', $l->t('Host'))),
-					(new Param('share', $l->t('Share'))),
-					(new Param('root', $l->t('Remote subfolder')))
-						->setFlag(Param::FLAG_OPTIONAL),
+					(new BackendParameter('host', $l->t('Host'))),
+					(new BackendParameter('share', $l->t('Share'))),
+					(new BackendParameter('root', $l->t('Remote subfolder')))
+						->setFlag(BackendParameter::FLAG_OPTIONAL),
 				]))
 				->setHasDependencies(true)
 				->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
@@ -307,13 +307,13 @@ class BackendService {
 
 			$this->registerBackend(
 				(new BackendConfig('\OC\Files\Storage\SMB_OC', $l->t('SMB / CIFS using OC login'), [
-					(new Param('host', $l->t('Host'))),
-					(new Param('username_as_share', $l->t('Username as share')))
-						->setType(Param::VALUE_BOOLEAN),
-					(new Param('share', $l->t('Share')))
-						->setFlag(Param::FLAG_OPTIONAL),
-					(new Param('root', $l->t('Remote subfolder')))
-						->setFlag(Param::FLAG_OPTIONAL),
+					(new BackendParameter('host', $l->t('Host'))),
+					(new BackendParameter('username_as_share', $l->t('Username as share')))
+						->setType(BackendParameter::VALUE_BOOLEAN),
+					(new BackendParameter('share', $l->t('Share')))
+						->setFlag(BackendParameter::FLAG_OPTIONAL),
+					(new BackendParameter('root', $l->t('Remote subfolder')))
+						->setFlag(BackendParameter::FLAG_OPTIONAL),
 				]))
 				->setHasDependencies(true)
 				->setPriority(BackendConfig::PRIORITY_DEFAULT - 10)
@@ -322,11 +322,11 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\DAV', $l->t('WebDAV'), [
-				(new Param('host', $l->t('URL'))),
-				(new Param('root', $l->t('Remote subfolder')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('secure', $l->t('Secure https://')))
-					->setType(Param::VALUE_BOOLEAN),
+				(new BackendParameter('host', $l->t('URL'))),
+				(new BackendParameter('root', $l->t('Remote subfolder')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('secure', $l->t('Secure https://')))
+					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
 			->setHasDependencies(true)
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
@@ -335,11 +335,11 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\OwnCloud', $l->t('ownCloud'), [
-				(new Param('host', $l->t('URL'))),
-				(new Param('root', $l->t('Remote subfolder')))
-					->setFlag(Param::FLAG_OPTIONAL),
-				(new Param('secure', $l->t('Secure https://')))
-					->setType(Param::VALUE_BOOLEAN),
+				(new BackendParameter('host', $l->t('URL'))),
+				(new BackendParameter('root', $l->t('Remote subfolder')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
+				(new BackendParameter('secure', $l->t('Secure https://')))
+					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
 			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
@@ -347,9 +347,9 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\SFTP', $l->t('SFTP'), [
-				(new Param('host', $l->t('Host'))),
-				(new Param('root', $l->t('Root')))
-					->setFlag(Param::FLAG_OPTIONAL),
+				(new BackendParameter('host', $l->t('Host'))),
+				(new BackendParameter('root', $l->t('Root')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
 			]))
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
 			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
@@ -357,13 +357,13 @@ class BackendService {
 
 		$this->registerBackend(
 			(new BackendConfig('\OC\Files\Storage\SFTP_Key', $l->t('SFTP with secret key login'), [
-				(new Param('host', $l->t('Host'))),
-				(new Param('user', $l->t('Username'))),
-				(new Param('public_key', $l->t('Public key'))),
-				(new Param('private_key', 'private_key'))
-					->setType(Param::VALUE_HIDDEN),
-				(new Param('root', $l->t('Remote subfolder')))
-					->setFlag(Param::FLAG_OPTIONAL),
+				(new BackendParameter('host', $l->t('Host'))),
+				(new BackendParameter('user', $l->t('Username'))),
+				(new BackendParameter('public_key', $l->t('Public key'))),
+				(new BackendParameter('private_key', 'private_key'))
+					->setType(BackendParameter::VALUE_HIDDEN),
+				(new BackendParameter('root', $l->t('Remote subfolder')))
+					->setFlag(BackendParameter::FLAG_OPTIONAL),
 			]))
 			->setCustomJs('sftp_key')
 		);
@@ -385,9 +385,9 @@ class BackendService {
 		$this->registerAuthMechanism(
 			(new AuthMechConfig(AuthMechConfig::SCHEME_PASSWORD,
 				'\OCA\Files_External\Lib\Auth\Password\Basic', $l->t('Username and password'), [
-					(new Param('user', $l->t('Username'))),
-					(new Param('password', $l->t('Password')))
-						->setType(Param::VALUE_PASSWORD),
+					(new BackendParameter('user', $l->t('Username'))),
+					(new BackendParameter('password', $l->t('Password')))
+						->setType(BackendParameter::VALUE_PASSWORD),
 			]))
 		);
 	}
