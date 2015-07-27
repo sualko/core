@@ -33,6 +33,7 @@
 
 use \OCP\AppFramework\IAppContainer;
 use \OCA\Files_External\Lib\BackendConfig;
+use \OCA\Files_External\Lib\BackendParameter;
 
 /**
  * Class to configure mount.json globally and for users
@@ -62,6 +63,58 @@ class OC_Mount_Config {
 	 */
 	public static function initApp(IAppContainer $appContainer) {
 		self::$appContainer = $appContainer;
+	}
+
+	/**
+	 * @param string $class
+	 * @param array $definition
+	 * @return bool
+	 * @deprecated 8.2.0 use \OCA\Files_External\Service\BackendService::registerBackend()
+	 */
+	public static function registerBackend($class, $definition) {
+		$backendService = self::$appContainer->query('\OCA\Files_External\Service\BackendService');
+
+		$params = [];
+		foreach ($definition['configuration'] as $name => $placeholder) {
+			$flags = BackendParameter::FLAG_NONE;
+			$type = BackendParameter::VALUE_TEXT;
+			if ($placeholder[0] === '&') {
+				$flags = BackendParameter::FLAG_OPTIONAL;
+				$placeholder = substr($placeholder, 1);
+			}
+			switch ($placeholder[0]) {
+			case '!':
+				$type = BackendParameter::VALUE_BOOLEAN;
+				$placeholder = substr($placeholder, 1);
+				break;
+			case '*':
+				$type = BackendParameter::VALUE_PASSWORD;
+				$placeholder = substr($placeholder, 1);
+				break;
+			case '#':
+				$type = BackendParameter::VALUE_HIDDEN;
+				$placeholder = substr($placeholder, 1);
+				break;
+			}
+			$params[] = (new Param($name, $placeholder))
+				->setType($type)
+				->setFlags($flags);
+		}
+
+		$backend = new BackendConfig($class, $definition['backend'], $params);
+		if (isset($definition['priority'])) {
+			$backend->setPriority($definition['priority']);
+		}
+		if (isset($definition['custom'])) {
+			$backend->setCustomJs($definition['custom']);
+		}
+		if (isset($definition['has_dependencies']) && $defintion['has_dependencies']) {
+			$backend->setDependencyCheck($class . '::checkDependencies');
+		}
+
+		$backendService->registerBackend($backend);
+
+		return true;
 	}
 
 	/*
