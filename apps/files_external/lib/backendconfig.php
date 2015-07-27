@@ -59,8 +59,8 @@ class BackendConfig implements \JsonSerializable {
 	/** @var int initial priority */
 	private $priority = self::PRIORITY_DEFAULT;
 
-	/** @var bool has dependencies */
-	private $hasDependencies = false;
+	/** @var callable|null dependency check */
+	private $dependencyCheck = null;
 
 	/** @var string|null custom JS */
 	private $customJs = null;
@@ -152,15 +152,15 @@ class BackendConfig implements \JsonSerializable {
 	 * @return bool
 	 */
 	public function hasDependencies() {
-		return $this->hasDependencies;
+		return !is_null($this->dependencyCheck);
 	}
 
 	/**
-	 * @param bool $hasDependencies
+	 * @param callable $dependencyCheck
 	 * @return self
 	 */
-	public function setHasDependencies($hasDependencies) {
-		$this->hasDependencies = $hasDependencies;
+	public function setDependencyCheck(callable $dependencyCheck) {
+		$this->dependencyCheck = $dependencyCheck;
 		return $this;
 	}
 
@@ -241,8 +241,7 @@ class BackendConfig implements \JsonSerializable {
 		$ret = [];
 
 		if ($this->hasDependencies()) {
-			$class = $this->getClass();
-			$result = $class::checkDependencies();
+			$result = call_user_func($this->dependencyCheck);
 			if ($result !== true) {
 				if (!is_array($result)) {
 					$result = [$result];

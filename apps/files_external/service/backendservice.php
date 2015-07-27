@@ -222,7 +222,7 @@ class BackendService {
 				(new BackendParameter('use_path_style', $l->t('Enable Path Style')))
 					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\AmazonS3::checkDependencies')
 		);
 
 		$this->registerBackend(
@@ -237,7 +237,7 @@ class BackendService {
 				(new BackendParameter('token_secret', 'token_secret'))
 					->setType(BackendParameter::VALUE_HIDDEN),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\Dropbox::checkDependencies')
 			->setCustomJs('dropbox')
 		);
 
@@ -249,7 +249,7 @@ class BackendService {
 				(new BackendParameter('secure', $l->t('Secure ftps://')))
 					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\FTP::checkDependencies')
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
 			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);
@@ -264,7 +264,7 @@ class BackendService {
 				(new BackendParameter('token', 'token'))
 					->setType(BackendParameter::VALUE_HIDDEN),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\Google::checkDependencies')
 			->setCustomJs('google')
 		);
 
@@ -289,7 +289,7 @@ class BackendService {
 				(new BackendParameter('timeout', $l->t('Timeout of HTTP requests in seconds')))
 					->setFlag(BackendParameter::FLAG_OPTIONAL),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\Swift::checkDependencies')
 		);
 
 		if (!\OC_Util::runningOnWindows()) {
@@ -300,7 +300,7 @@ class BackendService {
 					(new BackendParameter('root', $l->t('Remote subfolder')))
 						->setFlag(BackendParameter::FLAG_OPTIONAL),
 				]))
-				->setHasDependencies(true)
+				->setDependencyCheck('\OC\Files\Storage\SMB::checkDependencies')
 				->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
 				->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 			);
@@ -315,7 +315,7 @@ class BackendService {
 					(new BackendParameter('root', $l->t('Remote subfolder')))
 						->setFlag(BackendParameter::FLAG_OPTIONAL),
 				]))
-				->setHasDependencies(true)
+				->setDependencyCheck('\OC\Files\Storage\SMB_OC::checkDependencies')
 				->setPriority(BackendConfig::PRIORITY_DEFAULT - 10)
 			);
 		}
@@ -328,7 +328,7 @@ class BackendService {
 				(new BackendParameter('secure', $l->t('Secure https://')))
 					->setType(BackendParameter::VALUE_BOOLEAN),
 			]))
-			->setHasDependencies(true)
+			->setDependencyCheck('\OC\Files\Storage\DAV::checkDependencies')
 			->addAuthScheme(AuthMechConfig::SCHEME_PASSWORD)
 			->setLegacyAuthMechanismClass('\OCA\Files_External\Lib\Auth\Password\Basic')
 		);

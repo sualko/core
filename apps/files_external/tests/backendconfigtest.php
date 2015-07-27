@@ -86,22 +86,14 @@ class BackendConfigTest extends \Test\TestCase {
 		$this->assertEquals($expectedSuccess, $backendConfig->validateStorage($storageConfig));
 	}
 
-	/**
-	 * Static method for testCheckDependencies()
-	 * Do not stare at for too long, keep all limbs well away from the function
-	 *
-	 * @return BackendDependency[]
-	 */
-	public static function checkDependencies() {
-		return [
-			(new BackendDependency('dependency'))->setMessage('missing dependency'),
-			(new BackendDependency('program'))->setMessage('cannot find program'),
-		];
-	}
-
 	public function testCheckDependencies() {
-		$backend = new BackendConfig('\OCA\Files_External\Tests\BackendConfigTest', 'test', []);
-		$backend->setHasDependencies(true);
+		$backend = new BackendConfig('\OC\Files\Storage\SMB', 'test', []);
+		$backend->setDependencyCheck(function() {
+			return [
+				(new BackendDependency('dependency'))->setMessage('missing dependency'),
+				(new BackendDependency('program'))->setMessage('cannot find program'),
+			];
+		});
 
 		$dependencies = $backend->checkDependencies();
 		$this->assertCount(2, $dependencies);
