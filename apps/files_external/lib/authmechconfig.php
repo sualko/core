@@ -142,9 +142,6 @@ class AuthMechConfig implements \JsonSerializable {
 	public function validateStorage(StorageConfig $storage) {
 		// does the backend actually support this scheme
 		$supportedSchemes = $storage->getBackend()->getAuthSchemes();
-		if (empty($supportedSchemes)) {
-			$supportedSchemes = [self::SCHEME_NULL => true];
-		}
 		if (!isset($supportedSchemes[$this->scheme])) {
 			return false;
 		}

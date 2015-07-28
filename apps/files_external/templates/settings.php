@@ -1,7 +1,6 @@
 <?php
 	use \OCA\Files_External\Lib\BackendConfig;
 	use \OCA\Files_External\Lib\BackendParameter;
-	use \OCA\Files_External\Lib\AuthMechConfig;
 	use \OCA\Files_External\Service\BackendService;
 
 	function writeParameterInput($parameter, $options, $classes = []) {
@@ -87,9 +86,6 @@
 					<select class="selectAuthMechanism">
 						<?php
 							$authSchemes = $storage->getBackend()->getAuthSchemes();
-							if (empty($authSchemes)) {
-								$authSchemes = [AuthMechConfig::SCHEME_NULL => true];
-							}
 							$authMechanisms = array_filter($_['authMechanisms'], function($mech) use ($authSchemes) {
 								return isset($authSchemes[$mech->getScheme()]);
 							});
