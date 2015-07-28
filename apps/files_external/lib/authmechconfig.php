@@ -23,11 +23,15 @@ namespace OCA\Files_External\Lib;
 
 use \OCA\Files_External\Lib\BackendParameter;
 use \OCA\Files_External\Lib\StorageConfig;
+use \OCA\Files_External\Lib\VisibilityTrait;
+use \OCA\Files_External\Service\BackendService;
 
 /**
  * External storage authentication mechanism configuration
  */
 class AuthMechConfig implements \JsonSerializable {
+
+	use VisibilityTrait;
 
 	/** Standard mechanism schemes */
 	const SCHEME_NULL = 'null';
@@ -59,6 +63,8 @@ class AuthMechConfig implements \JsonSerializable {
 		$this->class = $class;
 		$this->text = $text;
 		$this->parameters = $parameters;
+		$this->visibility = BackendService::VISIBILITY_DEFAULT;
+		$this->allowedVisibility = BackendService::VISIBILITY_DEFAULT;
 	}
 
 	/**

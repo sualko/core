@@ -24,6 +24,8 @@
  *
  */
 
+use \OCA\Files_External\Service\BackendService;
+
 $app = new \OCA\Files_external\Appinfo\Application();
 $appContainer = $app->getContainer();
 $backendService = $appContainer->query('\OCA\Files_External\Service\BackendService');
@@ -37,6 +39,6 @@ $tmpl->assign('encryptionEnabled', \OC::$server->getEncryptionManager()->isEnabl
 $tmpl->assign('isAdminPage', false);
 $tmpl->assign('storages', $userStoragesService->getAllStorages());
 $tmpl->assign('dependencies', OC_Mount_Config::dependencyMessage($backendService->getBackends()));
-$tmpl->assign('backends', $backendService->getUserBackends());
+$tmpl->assign('backends', $backendService->getBackendsVisibleFor(BackendService::VISIBILITY_PERSONAL));
 $tmpl->assign('authMechanisms', $backendService->getAuthMechanisms());
 return $tmpl->fetchPage();

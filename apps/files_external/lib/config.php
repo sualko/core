@@ -34,6 +34,7 @@
 use \OCP\AppFramework\IAppContainer;
 use \OCA\Files_External\Lib\BackendConfig;
 use \OCA\Files_External\Lib\BackendParameter;
+use \OCA\Files_External\Service\BackendService;
 
 /**
  * Class to configure mount.json globally and for users
@@ -286,7 +287,7 @@ class OC_Mount_Config {
 		if (isset($mountConfig[self::MOUNT_TYPE_USER][$user])) {
 			foreach ($mountConfig[self::MOUNT_TYPE_USER][$user] as $mountPoint => $options) {
 				$backend = $backendService->getBackend($options['class']);
-				if ($backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
+				if ($backend->isVisibleFor(BackendService::VISIBILITY_PERSONAL)) {
 					$options['personal'] = true;
 					$options['options'] = self::decryptPasswords($options['options']);
 					if (!isset($options['authMechanism'])) {

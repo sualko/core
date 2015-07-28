@@ -79,7 +79,7 @@ class UserStoragesController extends StoragesController {
 		// Prevent non-admin users from mounting local storage and other disabled backends
 		/** @var BackendConfig */
 		$backend = $storage->getBackend();
-		if (!$backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) {
+		if (!$backend->isVisibleFor(BackendService::VISIBILITY_PERSONAL)) {
 			return new DataResponse(
 				array(
 					'message' => (string)$this->l10n->t('Admin-only storage backend "%s"', [

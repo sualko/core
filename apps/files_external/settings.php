@@ -26,6 +26,8 @@
  *
  */
 
+use \OCA\Files_External\Service\BackendService;
+
 OC_Util::checkAdminUser();
 
 $app = new \OCA\Files_external\Appinfo\Application();
@@ -43,9 +45,9 @@ $tmpl = new OCP\Template('files_external', 'settings');
 $tmpl->assign('encryptionEnabled', \OC::$server->getEncryptionManager()->isEnabled());
 $tmpl->assign('isAdminPage', true);
 $tmpl->assign('storages', $globalStoragesService->getAllStorages());
-$tmpl->assign('backends', $backendService->getAvailableBackends());
+$tmpl->assign('backends', $backendService->getBackendsVisibleFor(BackendService::VISIBILITY_ADMIN));
 $tmpl->assign('authMechanisms', $backendService->getAuthMechanisms());
-$tmpl->assign('personal_backends', $backendService->getUserBackends());
+$tmpl->assign('userBackends', $backendService->getBackendsAllowedVisibleFor(BackendService::VISIBILITY_PERSONAL));
 $tmpl->assign('dependencies', OC_Mount_Config::dependencyMessage($backendService->getBackends()));
 $tmpl->assign('allowUserMounting', $backendService->isUserMountingAllowed());
 return $tmpl->fetchPage();

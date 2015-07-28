@@ -24,19 +24,15 @@ namespace OCA\Files_External\Lib;
 use \OCA\Files_External\Lib\BackendParameter;
 use \OCA\Files_External\Lib\BackendDependency;
 use \OCA\Files_External\Lib\StorageConfig;
+use \OCA\Files_External\Lib\VisibilityTrait;
+use \OCA\Files_External\Service\BackendService;
 
 /**
  * External storage backend configuration
  */
 class BackendConfig implements \JsonSerializable {
 
-	/** Visibility constants */
-	const VISIBILITY_NONE = 0;
-	const VISIBILITY_PERSONAL = 1;
-	const VISIBILITY_ADMIN = 2;
-	//const VISIBILITY_ALIENS = 4;
-
-	const VISIBILITY_DEFAULT = 3; // PERSONAL | ADMIN
+	use VisibilityTrait;
 
 	/** Initial priority constants */
 	const PRIORITY_DEFAULT = 100;
@@ -65,9 +61,6 @@ class BackendConfig implements \JsonSerializable {
 	/** @var string|null custom JS */
 	private $customJs = null;
 
-	/** @var int visibility, see self::VISIBILITY_* constants */
-	private $visibility = self::VISIBILITY_DEFAULT;
-
 	/**
 	 * @param string $class Backend class
 	 * @param string $text Human-readable name
@@ -77,6 +70,8 @@ class BackendConfig implements \JsonSerializable {
 		$this->class = $class;
 		$this->text = $text;
 		$this->parameters = $parameters;
+		$this->visibility = BackendService::VISIBILITY_DEFAULT;
+		$this->allowedVisibility = BackendService::VISIBILITY_DEFAULT;
 	}
 
 	/**
@@ -177,35 +172,6 @@ class BackendConfig implements \JsonSerializable {
 	 */
 	public function setCustomJs($custom) {
 		$this->customJs = $custom;
-		return $this;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getVisibility() {
-		return $this->visibility;
-	}
-
-	/**
-	 * Check if the backend is visible for a user type
-	 *
-	 * @param int $visibility
-	 * @return bool
-	 */
-	public function isVisibleFor($visibility) {
-		if ($this->visibility & $visibility) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @param int $visibility
-	 * @return self
-	 */
-	public function setVisibility($visibility) {
-		$this->visibility = $visibility;
 		return $this;
 	}
 

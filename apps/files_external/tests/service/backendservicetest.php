@@ -64,11 +64,11 @@ class BackendServiceTest extends \Test\TestCase {
 
 		$backendAllowed = $this->getBackendMock('\User\Mount\Allowed');
 		$backendAllowed->expects($this->never())
-			->method('setVisibility');
+			->method('removeVisibility');
 		$backendNotAllowed = $this->getBackendMock('\User\Mount\NotAllowed');
 		$backendNotAllowed->expects($this->once())
-			->method('setVisibility')
-			->with(BackendConfig::VISIBILITY_ADMIN);
+			->method('removeVisibility')
+			->with(BackendService::VISIBILITY_PERSONAL);
 
 		$service->registerBackend($backendAllowed);
 		$service->registerBackend($backendNotAllowed);
@@ -104,18 +104,18 @@ class BackendServiceTest extends \Test\TestCase {
 		$backendAllowed = $this->getBackendMock('\User\Mount\Allowed');
 		$backendAllowed->expects($this->once())
 			->method('isVisibleFor')
-			->with(BackendConfig::VISIBILITY_PERSONAL)
+			->with(BackendService::VISIBILITY_PERSONAL)
 			->will($this->returnValue(true));
 		$backendNotAllowed = $this->getBackendMock('\User\Mount\NotAllowed');
 		$backendNotAllowed->expects($this->once())
 			->method('isVisibleFor')
-			->with(BackendConfig::VISIBILITY_PERSONAL)
+			->with(BackendService::VISIBILITY_PERSONAL)
 			->will($this->returnValue(false));
 
 		$service->registerBackend($backendAllowed);
 		$service->registerBackend($backendNotAllowed);
 
-		$userBackends = $service->getUserBackends();
+		$userBackends = $service->getBackendsVisibleFor(BackendService::VISIBILITY_PERSONAL);
 		$this->assertArrayHasKey('\User\Mount\Allowed', $userBackends);
 		$this->assertArrayNotHasKey('\User\Mount\NotAllowed', $userBackends);
 	}

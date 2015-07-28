@@ -33,6 +33,14 @@ use \OCA\Files_External\Lib\BackendParameter;
  */
 class BackendService {
 
+	/** Visibility constants for backends and auth mechanisms */
+	const VISIBILITY_NONE = 0;
+	const VISIBILITY_PERSONAL = 1;
+	const VISIBILITY_ADMIN = 2;
+	//const VISIBILITY_ALIENS = 4;
+
+	const VISIBILITY_DEFAULT = 3; // PERSONAL | ADMIN
+
 	/** @var IConfig */
 	protected $config;
 
@@ -80,8 +88,8 @@ class BackendService {
 	 * @param BackendConfig $backend
 	 */
 	public function registerBackend(BackendConfig $backend) {
-		if (! $this->isAllowedUserBackend($backend)) {
-			$backend->setVisibility(BackendConfig::VISIBILITY_ADMIN);
+		if (!$this->isAllowedUserBackend($backend)) {
+			$backend->removeVisibility(BackendService::VISIBILITY_PERSONAL);
 		}
 		$this->backends[$backend->getClass()] = $backend;
 	}
@@ -92,6 +100,9 @@ class BackendService {
 	 * @param AuthMechConfig $authMech
 	 */
 	public function registerAuthMechanism(AuthMechConfig $authMech) {
+		if (!$this->isAllowedAuthMechanism($authMech)) {
+			$authMech->removeVisibility(BackendService::VISIBILITY_PERSONAL);
+		}
 		$this->authMechanisms[$authMech->getClass()] = $authMech;
 	}
 
@@ -116,13 +127,26 @@ class BackendService {
 	}
 
 	/**
-	 * Get user-allowed backends only
+	 * Get backends visible for $visibleFor
 	 *
+	 * @param int $visibleFor
 	 * @return BackendConfig[]
 	 */
-	public function getUserBackends() {
-		return array_filter($this->getAvailableBackends(), function($backend) {
-			return $backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL);
+	public function getBackendsVisibleFor($visibleFor) {
+		return array_filter($this->getAvailableBackends(), function($backend) use ($visibleFor) {
+			return $backend->isVisibleFor($visibleFor);
+		});
+	}
+
+	/**
+	 * Get backends allowed to be visible for $visibleFor
+	 *
+	 * @param int $visibleFor
+	 * @return BackendConfig[]
+	 */
+	public function getBackendsAllowedVisibleFor($visibleFor) {
+		return array_filter($this->getAvailableBackends(), function($backend) use ($visibleFor) {
+			return $backend->isAllowedVisibleFor($visibleFor);
 		});
 	}
 
@@ -159,6 +183,31 @@ class BackendService {
 	}
 
 	/**
+	 * Get authentication mechanisms visible for $visibleFor
+	 *
+	 * @param int $visibleFor
+	 * @return AuthMechConfig[]
+	 */
+	public function getAuthMechanismsVisibleFor($visibleFor) {
+		return array_filter($this->getAuthMechanisms(), function($authMechanism) use ($visibleFor) {
+			return $authMechanism->isVisibleFor($visibleFor);
+		});
+	}
+
+	/**
+	 * Get authentication mechanisms allowed to be visible for $visibleFor
+	 *
+	 * @param int $visibleFor
+	 * @return AuthMechConfig[]
+	 */
+	public function getAuthMechanismsAllowedVisibleFor($visibleFor) {
+		return array_filter($this->getAuthMechanisms(), function($authMechanism) use ($visibleFor) {
+			return $authMechanism->isAllowedVisibleFor($visibleFor);
+		});
+	}
+
+
+	/**
 	 * @param string $class
 	 * @return AuthMechConfig|null
 	 */
@@ -192,6 +241,16 @@ class BackendService {
 	}
 
 	/**
+	 * Check an authentication mechanism if a user is allowed to use it
+	 *
+	 * @param AuthMechConfig $authMechanism
+	 * @return bool
+	 */
+	protected function isAllowedAuthMechanism(AuthMechConfig $authMechanism) {
+		return true; // not implemented
+	}
+
+	/**
 	 * Load backends
 	 */
 	protected function loadBackends() {
@@ -201,7 +260,7 @@ class BackendService {
 			(new BackendConfig('\OC\Files\Storage\Local', $l->t('Local'), [
 				(new BackendParameter('datadir', $l->t('Location'))),
 			]))
-			->setVisibility(BackendConfig::VISIBILITY_ADMIN)
+			->setAllowedVisibility(BackendService::VISIBILITY_ADMIN)
 			->setPriority(BackendConfig::PRIORITY_DEFAULT + 50)
 		);
 

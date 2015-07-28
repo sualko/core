@@ -2,6 +2,7 @@
 	use \OCA\Files_External\Lib\BackendConfig;
 	use \OCA\Files_External\Lib\BackendParameter;
 	use \OCA\Files_External\Lib\AuthMechConfig;
+	use \OCA\Files_External\Service\BackendService;
 
 	function writeParameterInput($parameter, $options, $classes = []) {
 		$value = '';
@@ -211,8 +212,8 @@
 
 		<p id="userMountingBackends"<?php if ($_['allowUserMounting'] != 'yes'): ?> class="hidden"<?php endif; ?>>
 			<?php p($l->t('Allow users to mount the following external storage')); ?><br />
-			<?php $i = 0; foreach ($_['backends'] as $backend): ?>
-				<input type="checkbox" id="allowUserMountingBackends<?php p($i); ?>" name="allowUserMountingBackends[]" value="<?php p($backend->getClass()); ?>" <?php if ($backend->isVisibleFor(BackendConfig::VISIBILITY_PERSONAL)) print_unescaped(' checked="checked"'); ?> />
+			<?php $i = 0; foreach ($_['userBackends'] as $backend): ?>
+				<input type="checkbox" id="allowUserMountingBackends<?php p($i); ?>" name="allowUserMountingBackends[]" value="<?php p($backend->getClass()); ?>" <?php if ($backend->isVisibleFor(BackendService::VISIBILITY_PERSONAL)) print_unescaped(' checked="checked"'); ?> />
 				<label for="allowUserMountingBackends<?php p($i); ?>"><?php p($backend->getText()); ?></label> <br />
 				<?php $i++; ?>
 			<?php endforeach; ?>
