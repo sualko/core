@@ -31,7 +31,12 @@ class AuthMechConfigTest extends \Test\TestCase {
 			->getMock();
 		$param->method('getName')->willReturn('foo');
 
-		$authMechConfig = new AuthMechConfig('scheme', '\Auth\Mechanism', 'auth', [$param]);
+		$mechanism = $this->getMockBuilder('\OCA\Files_External\Lib\Auth\IMechanism')
+			->getMock();
+		$mechanism->method('getScheme')
+			->willReturn('scheme');
+
+		$authMechConfig = new AuthMechConfig($mechanism, 'auth', [$param]);
 		$authMechConfig->setCustomJs('foo/bar.js');
 
 		$json = $authMechConfig->jsonSerialize();
@@ -88,7 +93,12 @@ class AuthMechConfigTest extends \Test\TestCase {
 			->method('getBackend')
 			->willReturn($backendConfig);
 
-		$authMechConfig = new AuthMechConfig($scheme, '\Auth\Mechanism', 'auth', $backendParams);
+		$mechanism = $this->getMockBuilder('\OCA\Files_External\Lib\Auth\IMechanism')
+			->getMock();
+		$mechanism->method('getScheme')
+			->willReturn($scheme);
+
+		$authMechConfig = new AuthMechConfig($mechanism, 'auth', $backendParams);
 
 		$this->assertEquals($expectedSuccess, $authMechConfig->validateStorage($storageConfig));
 	}

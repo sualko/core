@@ -21,22 +21,29 @@
 
 namespace OCA\Files_External\Lib\Auth;
 
+use \OCA\Files_external\Lib\StorageConfig;
+
 /**
  * Authentication mechanism
  */
 interface IMechanism {
 
-	/**
-	 * Parse parameters to object data
-	 *
-	 * @param array $params
-	 */
-	public function __construct($params);
+	/** Standard authentication schemes */
+	const SCHEME_NULL = 'null';
+	const SCHEME_PASSWORD = 'password';
 
 	/**
-	 * Assemble object data as parameters
+	 * Modify a storage with authentication parameters
 	 *
-	 * @return array
+	 * @param StorageConfig $storage
 	 */
-	public function toParams();
+	public function manipulateStorage(StorageConfig &$storage);
+
+	/**
+	 * Get the authentication scheme implemented
+	 * See self::SCHEME_* constants
+	 *
+	 * @return string
+	 */
+	public function getScheme();
 }

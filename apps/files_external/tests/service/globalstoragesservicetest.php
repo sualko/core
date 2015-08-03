@@ -59,15 +59,13 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 	}
 
 	function storageDataProvider() {
-		$backend = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
-		$authMechanism = new AuthMechConfig('null', '\Auth\Mechanism', 'auth', []);
 		return [
 			// all users
 			[
-				$this->makeStorageConfig([
+				[
 					'mountPoint' => 'mountpoint',
-					'backend' => $backend,
-					'authMechanism' => $authMechanism,
+					'backendClass' => '\OC\Files\Storage\SMB',
+					'authMechanismClass' => '\Auth\Mechanism',
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -76,14 +74,14 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 					'applicableUsers' => [],
 					'applicableGroups' => [],
 					'priority' => 15,
-				]),
+				],
 			],
 			// some users
 			[
-				$this->makeStorageConfig([
+				[
 					'mountPoint' => 'mountpoint',
-					'backend' => $backend,
-					'authMechanism' => $authMechanism,
+					'backendClass' => '\OC\Files\Storage\SMB',
+					'authMechanismClass' => '\Auth\Mechanism',
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -92,14 +90,14 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 					'applicableUsers' => ['user1', 'user2'],
 					'applicableGroups' => [],
 					'priority' => 15,
-				]),
+				],
 			],
 			// some groups
 			[
-				$this->makeStorageConfig([
+				[
 					'mountPoint' => 'mountpoint',
-					'backend' => $backend,
-					'authMechanism' => $authMechanism,
+					'backendClass' => '\OC\Files\Storage\SMB',
+					'authMechanismClass' => '\Auth\Mechanism',
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -108,14 +106,14 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 					'applicableUsers' => [],
 					'applicableGroups' => ['group1', 'group2'],
 					'priority' => 15,
-				]),
+				],
 			],
 			// both users and groups
 			[
-				$this->makeStorageConfig([
+				[
 					'mountPoint' => 'mountpoint',
-					'backend' => $backend,
-					'authMechanism' => $authMechanism,
+					'backendClass' => '\OC\Files\Storage\SMB',
+					'authMechanismClass' => '\Auth\Mechanism',
 					'backendOptions' => [
 						'option1' => 'value1',
 						'option2' => 'value2',
@@ -124,7 +122,7 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 					'applicableUsers' => ['user1', 'user2'],
 					'applicableGroups' => ['group1', 'group2'],
 					'priority' => 15,
-				]),
+				],
 			],
 		];
 	}
@@ -132,7 +130,8 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 	/**
 	 * @dataProvider storageDataProvider
 	 */
-	public function testAddStorage($storage) {
+	public function testAddStorage($storageParams) {
+		$storage = $this->makeStorageConfig($storageParams);
 		$newStorage = $this->service->addStorage($storage);
 
 		$this->assertEquals(1, $newStorage->getId());
@@ -158,7 +157,8 @@ class GlobalStoragesServiceTest extends StoragesServiceTest {
 	/**
 	 * @dataProvider storageDataProvider
 	 */
-	public function testUpdateStorage($updatedStorage) {
+	public function testUpdateStorage($updatedStorageParams) {
+		$updatedStorage = $this->makeStorageConfig($updatedStorageParams);
 		$storage = $this->makeStorageConfig([
 			'mountPoint' => 'mountpoint',
 			'backendClass' => '\OC\Files\Storage\SMB',

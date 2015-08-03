@@ -84,8 +84,9 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 			->will($this->returnValue($backends));
 
 		$authMechanisms = [
-			'\Auth\Mechanism' => (new AuthMechConfig('null', '\Auth\Mechanism', 'auth', [])),
-			'\Other\Auth\Mechanism' => (new AuthMechConfig('null', '\Other\Auth\Mechanism', 'auth', [])),
+			'\Auth\Mechanism' => $this->getAuthMechConfigMock('null', '\Auth\Mechanism'),
+			'\Other\Auth\Mechanism' => $this->getAuthMechConfigMock('null', '\Other\Auth\Mechanism'),
+			'\OCA\Files_External\Lib\Auth\NullMechanism' => $this->getAuthMechConfigMock(),
 		];
 		$this->backendService->method('getAuthMechanism')
 			->will($this->returnCallback(function($class) use ($authMechanisms) {
@@ -117,6 +118,22 @@ abstract class StoragesServiceTest extends \Test\TestCase {
 	public function tearDown() {
 		\OC_Mount_Config::$skipTest = false;
 		self::$hookCalls = array();
+	}
+
+	protected function getAuthMechConfigMock($scheme = 'null', $class = '\OCA\Files_External\Lib\Auth\NullMechanism') {
+		$authMechConfig = $this->getMockBuilder('\OCA\Files_External\Lib\AuthMechConfig')
+			->disableOriginalConstructor()
+			->getMock();
+		$authMechConfig->method('getScheme')
+			->willReturn($scheme);
+		$authMechConfig->method('getClass')
+			->willReturn($class);
+
+		$authMech = $this->getMock('\OCA\Files_External\Lib\Auth\IMechanism');
+		$authMechConfig->method('getImplementation')
+			->willReturn($authMech);
+
+		return $authMechConfig;
 	}
 
 	/**

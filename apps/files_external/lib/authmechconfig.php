@@ -25,6 +25,7 @@ use \OCA\Files_External\Lib\BackendParameter;
 use \OCA\Files_External\Lib\StorageConfig;
 use \OCA\Files_External\Lib\VisibilityTrait;
 use \OCA\Files_External\Service\BackendService;
+use \OCA\Files_External\Lib\Auth\IMechanism;
 
 /**
  * External storage authentication mechanism configuration
@@ -33,15 +34,8 @@ class AuthMechConfig implements \JsonSerializable {
 
 	use VisibilityTrait;
 
-	/** Standard mechanism schemes */
-	const SCHEME_NULL = 'null';
-	const SCHEME_PASSWORD = 'password';
-
-	/** @var string implemented authentication scheme */
-	private $scheme;
-
-	/** @var string mechanism class */
-	private $class;
+	/** @var IMechanism mechanism implementation */
+	private $implementation;
 
 	/** @var string human-readable mechanism name */
 	private $text;
@@ -53,14 +47,12 @@ class AuthMechConfig implements \JsonSerializable {
 	private $customJs = null;
 
 	/**
-	 * @param string $scheme Implemented authentication scheme
-	 * @param string $class Mechanism class
+	 * @param IMechanism $implementation Mechanism implementation
 	 * @param string $text Human-readable name
 	 * @param BackendParameter[] $parameters
 	 */
-	public function __construct($scheme, $class, $text, $parameters) {
-		$this->scheme = $scheme;
-		$this->class = $class;
+	public function __construct($implementation, $text, $parameters) {
+		$this->implementation = $implementation;
 		$this->text = $text;
 		$this->parameters = $parameters;
 		$this->visibility = BackendService::VISIBILITY_DEFAULT;
@@ -68,17 +60,24 @@ class AuthMechConfig implements \JsonSerializable {
 	}
 
 	/**
+	 * @return IMechanism
+	 */
+	public function getImplementation() {
+		return $this->implementation;
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getScheme() {
-		return $this->scheme;
+		return $this->implementation->getScheme();
 	}
 
 	/**
 	 * @return string
 	 */
 	public function getClass() {
-		return $this->class;
+		return '\\'.get_class($this->implementation);
 	}
 
 	/**
@@ -128,7 +127,7 @@ class AuthMechConfig implements \JsonSerializable {
 			'configuration' => $configuration,
 		];
 		if (isset($this->customJs)) {
-			$data['custom'] = $this->customJs;
+			$data['custom'] = $this->getCustomJs();
 		}
 		return $data;
 	}
@@ -142,11 +141,11 @@ class AuthMechConfig implements \JsonSerializable {
 	public function validateStorage(StorageConfig $storage) {
 		// does the backend actually support this scheme
 		$supportedSchemes = $storage->getBackend()->getAuthSchemes();
-		if (!isset($supportedSchemes[$this->scheme])) {
+		if (!isset($supportedSchemes[$this->getScheme()])) {
 			return false;
 		}
 		$options = $storage->getBackendOptions();
-		foreach ($this->parameters as $parameter) {
+		foreach ($this->getParameters() as $parameter) {
 			$value = isset($options[$parameter->getName()]) ?
 				$options[$parameter->getName()] : null;
 			if (!$parameter->validateValue($value)) {

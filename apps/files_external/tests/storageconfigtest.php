@@ -29,7 +29,13 @@ class StorageConfigTest extends \Test\TestCase {
 
 	public function testJsonSerialization() {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
-		$authMechConfig = new AuthMechConfig(0, '\Auth\Mechanism', 'auth', []);
+
+		$authMechConfig = $this->getMockBuilder('\OCA\Files_External\Lib\AuthMechConfig')
+			->disableOriginalConstructor()
+			->getMock();
+		$authMechConfig->method('getClass')
+			->willReturn('\Auth\Mechanism');
+
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('test');
 		$storageConfig->setBackend($backendConfig);

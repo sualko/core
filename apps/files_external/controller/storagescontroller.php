@@ -182,17 +182,15 @@ abstract class StoragesController extends Controller {
 	 * @param StorageConfig $storage storage configuration
 	 */
 	protected function updateStorageStatus(StorageConfig &$storage) {
-		// Load authentication mechanism data
-		$authMechanism = $storage->getAuthMechanism()->getClass();
 		/** @var IMechanism */
-		$auth = new $authMechanism($storage->getBackendOptions());
-		$options = array_merge($storage->getBackendOptions(), $auth->toParams());
+		$authMechanism = $storage->getAuthMechanism()->getImplementation();
+		$authMechanism->manipulateStorage($storage);
 
 		// update status (can be time-consuming)
 		$storage->setStatus(
 			\OC_Mount_Config::getBackendStatus(
 				$storage->getBackend()->getClass(),
-				$options,
+				$storage->getBackendOptions(),
 				false
 			)
 		);

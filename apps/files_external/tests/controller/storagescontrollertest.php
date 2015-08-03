@@ -50,11 +50,31 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 		\OC_Mount_Config::$skipTest = false;
 	}
 
+	protected function getAuthMechConfigMock($scheme = 'null', $class = '\OCA\Files_External\Lib\Auth\NullMechanism') {
+		$authMechConfig = $this->getMockBuilder('\OCA\Files_External\Lib\AuthMechConfig')
+			->disableOriginalConstructor()
+			->getMock();
+		$authMechConfig->method('getScheme')
+			->willReturn($scheme);
+		$authMechConfig->method('getClass')
+			->willReturn($class);
+
+		$authMech = $this->getMock('\OCA\Files_External\Lib\Auth\IMechanism');
+		$authMechConfig->method('getImplementation')
+			->willReturn($authMech);
+
+		return $authMechConfig;
+	}
+
 	public function testAddStorage() {
+		$authMechConfig = $this->getAuthMechConfigMock();
+		$authMechConfig->method('validateStorage')
+			->willReturn(true);
+
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');
 		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
-		$storageConfig->setAuthMechanism(new AuthMechConfig('null', '\OCA\Files_External\Lib\Auth\NullMechanism', 'auth', []));
+		$storageConfig->setAuthMechanism($authMechConfig);
 		$storageConfig->setBackendOptions([]);
 
 		$this->service->expects($this->once())
@@ -81,10 +101,14 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	}
 
 	public function testUpdateStorage() {
+		$authMechConfig = $this->getAuthMechConfigMock();
+		$authMechConfig->method('validateStorage')
+			->willReturn(true);
+
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');
 		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
-		$storageConfig->setAuthMechanism(new AuthMechConfig('null', '\OCA\Files_External\Lib\Auth\NullMechanism', 'auth', []));
+		$storageConfig->setAuthMechanism($authMechConfig);
 		$storageConfig->setBackendOptions([]);
 
 		$this->service->expects($this->once())
@@ -126,7 +150,7 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint($mountPoint);
 		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
-		$storageConfig->setAuthMechanism(new AuthMechConfig('null', '\OCA\Files_External\Lib\Auth\NullMechanism', 'auth', []));
+		$storageConfig->setAuthMechanism($this->getAuthMechConfigMock());
 		$storageConfig->setBackendOptions([]);
 
 		$this->service->expects($this->exactly(2))
@@ -203,10 +227,14 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 	}
 
 	public function testUpdateStorageNonExisting() {
+		$authMechConfig = $this->getAuthMechConfigMock();
+		$authMechConfig->method('validateStorage')
+			->willReturn(true);
+
 		$storageConfig = new StorageConfig(255);
 		$storageConfig->setMountPoint('mount');
 		$storageConfig->setBackend(new BackendConfig('\OC\Files\Storage\SMB', 'smb', []));
-		$storageConfig->setAuthMechanism(new AuthMechConfig('null', '\OCA\Files_External\Lib\Auth\NullMechanism', 'auth', []));
+		$storageConfig->setAuthMechanism($authMechConfig);
 		$storageConfig->setBackendOptions([]);
 
 		$this->service->expects($this->once())
@@ -250,7 +278,7 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 
 	public function testGetStorage() {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
-		$authMechConfig = new AuthMechConfig('null', '\OCA\Files_External\Lib\Auth\NullMechanism', 'auth', []);
+		$authMechConfig = $this->getAuthMechConfigMock();
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('test');
 		$storageConfig->setBackend($backendConfig);
@@ -289,13 +317,9 @@ abstract class StoragesControllerTest extends \Test\TestCase {
 		$backendConfig->method('isVisibleFor')
 			->will($this->returnValue(true)); // not testing visibility here
 
-		$authMechConfig = $this->getMockBuilder('\OCA\Files_External\Lib\AuthMechConfig')
-			->disableOriginalConstructor()
-			->getMock();
+		$authMechConfig = $this->getAuthMechConfigMock();
 		$authMechConfig->method('validateStorage')
 			->will($this->returnValue($authMechValidate));
-		$authMechConfig->method('getClass')
-			->willReturn('\OCA\Files_External\Lib\Auth\NullMechanism');
 
 		$storageConfig = new StorageConfig();
 		$storageConfig->setMountPoint('mount');

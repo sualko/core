@@ -21,26 +21,25 @@
 
 namespace OCA\Files_External\Lib\Auth;
 
+use \OCA\Files_External\Lib\Auth\IMechanism;
+use \OCA\Files_external\Lib\StorageConfig;
+
 /**
  * Null authentication mechanism
- * Implements AuthMechConfig::SCHEME_NULL
  */
 class NullMechanism implements IMechanism {
 
 	/**
-	 * Parse parameters to object data
-	 *
-	 * @param array $params
+	 * @param StorageConfig $storage
 	 */
-	public function __construct($params) {
+	public function manipulateStorage(StorageConfig &$storage) {
 	}
 
 	/**
-	 * Assemble object data as parameters
-	 *
-	 * @return array
+	 * @return string
 	 */
-	public function toParams() {
-		return [];
+	public function getScheme() {
+		return self::SCHEME_NULL;
 	}
+
 }

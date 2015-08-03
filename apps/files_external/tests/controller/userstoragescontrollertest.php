@@ -53,7 +53,7 @@ class UserStoragesControllerTest extends StoragesControllerTest {
 	public function testAddOrUpdateStorageDisallowedBackend() {
 		$backendConfig = new BackendConfig('\OC\Files\Storage\SMB', 'smb', []);
 		$backendConfig->removeVisibility(BackendService::VISIBILITY_PERSONAL);
-		$authMechConfig = new AuthMechConfig('null', '\Auth\Mechanism', 'auth', []);
+		$authMechConfig = $this->getAuthMechConfigMock();
 
 		$storageConfig = new StorageConfig(1);
 		$storageConfig->setMountPoint('mount');

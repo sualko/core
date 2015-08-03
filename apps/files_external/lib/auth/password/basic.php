@@ -22,34 +22,23 @@
 namespace OCA\Files_External\Lib\Auth\Password;
 
 use \OCA\Files_External\Lib\Auth\IMechanism;
+use \OCA\Files_external\Lib\StorageConfig;
 
 /**
  * Basic password authentication mechanism
- * Implements AuthMechConfig::SCHEME_PASSWORD
  */
 class Basic implements IMechanism {
 
-	/** @var string */
-	protected $username;
-
-	/** @var string */
-	protected $password;
-
 	/**
-	 * @param array $params
+	 * @param StorageConfig $storage
 	 */
-	public function __construct($params) {
-		$this->username = $params['user'];
-		$this->password = $params['password'];
+	public function manipulateStorage(StorageConfig &$storage) {
 	}
 
 	/**
-	 * @return array
+	 * @return string
 	 */
-	public function toParams() {
-		return [
-			'user' => $this->username,
-			'password' => $this->password
-		];
+	public function getScheme() {
+		return self::SCHEME_PASSWORD;
 	}
 }

@@ -95,7 +95,7 @@ class BackendServiceTest extends \Test\TestCase {
 
 		$availableBackends = $service->getAvailableBackends();
 		$this->assertArrayHasKey('\Backend\Available', $availableBackends);
-		$this->assertArrayNotHasKey('Backend\NotAvailable', $availableBackends);
+		$this->assertArrayNotHasKey('\Backend\NotAvailable', $availableBackends);
 	}
 
 	public function testGetUserBackends() {

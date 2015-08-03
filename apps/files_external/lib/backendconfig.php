@@ -26,7 +26,7 @@ use \OCA\Files_External\Lib\BackendDependency;
 use \OCA\Files_External\Lib\StorageConfig;
 use \OCA\Files_External\Lib\VisibilityTrait;
 use \OCA\Files_External\Service\BackendService;
-use \OCA\Files_External\Lib\AuthMechConfig;
+use \OCA\Files_External\Lib\Auth\IMechanism;
 
 /**
  * External storage backend configuration
@@ -94,7 +94,7 @@ class BackendConfig implements \JsonSerializable {
 	 */
 	public function getAuthSchemes() {
 		if (empty($this->authSchemes)) {
-			return [AuthMechConfig::SCHEME_NULL => true];
+			return [IMechanism::SCHEME_NULL => true];
 		}
 		return $this->authSchemes;
 	}
