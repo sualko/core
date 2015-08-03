@@ -32,8 +32,8 @@ OC_Util::checkAdminUser();
 
 $app = new \OCA\Files_external\Appinfo\Application();
 $appContainer = $app->getContainer();
-$backendService = $appContainer->query('\OCA\Files_External\Service\BackendService');
-$globalStoragesService = $appContainer->query('\OCA\Files_external\Service\GlobalStoragesService');
+$backendService = $appContainer->query('OCA\Files_External\Service\BackendService');
+$globalStoragesService = $appContainer->query('OCA\Files_external\Service\GlobalStoragesService');
 
 OCP\Util::addScript('files_external', 'settings');
 OCP\Util::addStyle('files_external', 'settings');

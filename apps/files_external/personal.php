@@ -28,8 +28,8 @@ use \OCA\Files_External\Service\BackendService;
 
 $app = new \OCA\Files_external\Appinfo\Application();
 $appContainer = $app->getContainer();
-$backendService = $appContainer->query('\OCA\Files_External\Service\BackendService');
-$userStoragesService = $appContainer->query('\OCA\Files_external\Service\UserStoragesService');
+$backendService = $appContainer->query('OCA\Files_External\Service\BackendService');
+$userStoragesService = $appContainer->query('OCA\Files_external\Service\UserStoragesService');
 
 OCP\Util::addScript('files_external', 'settings');
 OCP\Util::addStyle('files_external', 'settings');

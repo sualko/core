@@ -2,6 +2,7 @@
 /**
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Robin Appelman <icewind@owncloud.com>
+ * @author Robin McCorkell <rmccorkell@owncloud.com>
  *
  * @copyright Copyright (c) 2015, ownCloud, Inc.
  * @license AGPL-3.0
@@ -29,17 +30,49 @@ use OCP\Files\Config\IMountProvider;
 use OCP\IUser;
 use OCA\Files_External\Lib\Auth\IMechanism;
 use OCA\Files_external\Service\UserStoragesService;
+use OCA\Files_External\Service\UserGlobalStoragesService;
+use OCA\Files_External\Lib\StorageConfig;
 
 /**
  * Make the old files_external config work with the new public mount config api
  */
 class ConfigAdapter implements IMountProvider {
 
+	/** @var UserStoragesService */
+	private $userStoragesService;
+
+	/** @var UserGlobalStoragesService */
+	private $userGlobalStoragesService;
+
 	/**
 	 * @param UserStoragesService $userStoragesService
+	 * @param UserGlobalStoragesService $userGlobalStoragesService
 	 */
-	public function __construct(UserStoragesService $userStoragesService) {
+	public function __construct(
+		UserStoragesService $userStoragesService,
+		UserGlobalStoragesService $userGlobalStoragesService
+	) {
 		$this->userStoragesService = $userStoragesService;
+		$this->userGlobalStoragesService = $userGlobalStoragesService;
+	}
+
+	/**
+	 * Process storage ready for mounting
+	 *
+	 * @param StorageConfig $storage
+	 */
+	private function prepareStorage(StorageConfig &$storage) {
+		$objectStore = $storage->getBackendOption('objectstore');
+		if ($objectStore) {
+			$objectClass = $objectStore['class'];
+			$storage->setBackendOption('objectstore', new $objectClass($objectStore));
+		}
+
+		// Load authentication mechanism data
+		$authMechanism = $storage->getAuthMechanism()->getClass();
+		/** @var IMechanism */
+		$auth = new $authMechanism($storage->getBackendOptions());
+		$storage->setBackendOptions(array_merge($storage->getBackendOptions(), $auth->toParams()));
 	}
 
 	/**
@@ -50,29 +83,41 @@ class ConfigAdapter implements IMountProvider {
 	 * @return \OCP\Files\Mount\IMountPoint[]
 	 */
 	public function getMountsForUser(IUser $user, IStorageFactory $loader) {
-		$mountPoints = \OC_Mount_Config::getAbsoluteMountPoints($user->getUID());
-		$mounts = array();
-		foreach ($mountPoints as $mountPoint => $options) {
-			if (isset($options['options']['objectstore'])) {
-				$objectClass = $options['options']['objectstore']['class'];
-				$options['options']['objectstore'] = new $objectClass($options['options']['objectstore']);
-			}
+		$mounts = [];
 
-			// Load authentication mechanism data
-			$authMechanism = $options['authMechanism'];
-			/** @var IMechanism */
-			$auth = new $authMechanism($options['options']);
-			$options['options'] = array_merge($options['options'], $auth->toParams());
+		$this->userStoragesService->setUser($user);
+		$this->userGlobalStoragesService->setUser($user);
 
-			$mountOptions = isset($options['mountOptions']) ? $options['mountOptions'] : [];
-			if (isset($options['personal']) && $options['personal']) {
-				$mount = new PersonalMount($options['class'], $mountPoint, $options['options'], $loader, $mountOptions);
-				$mount->attachStoragesService($this->userStoragesService, $options['id']);
-				$mounts[] = $mount;
-			} else {
-				$mounts[] = new MountPoint($options['class'], $mountPoint, $options['options'], $loader, $mountOptions);
-			}
+		foreach ($this->userStoragesService->getAllStorages() as $storage) {
+			$this->prepareStorage($storage);
+
+			$mount = new PersonalMount(
+				$storage->getBackend()->getClass(),
+				'/'.$user->getUID().'/files' . $storage->getMountPoint(),
+				$storage->getBackendOptions(),
+				$loader,
+				$storage->getMountOptions()
+			);
+			$mount->attachStoragesService($this->userStoragesService);
+			$mounts[] = $mount;
 		}
+
+		foreach ($this->userGlobalStoragesService->getAllStorages() as $storage) {
+			$this->prepareStorage($storage);
+
+			$mount = new MountPoint(
+				$storage->getBackend()->getClass(),
+				'/'.$user->getUID().'/files' . $storage->getMountPoint(),
+				$storage->getBackendOptions(),
+				$loader,
+				$storage->getMountOptions()
+			);
+			$mounts[] = $mount;
+		}
+
+		$this->userStoragesService->resetUser();
+		$this->userGlobalStoragesService->resetUser();
+
 		return $mounts;
 	}
 }

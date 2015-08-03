@@ -73,7 +73,7 @@ class OC_Mount_Config {
 	 * @deprecated 8.2.0 use \OCA\Files_External\Service\BackendService::registerBackend()
 	 */
 	public static function registerBackend($class, $definition) {
-		$backendService = self::$appContainer->query('\OCA\Files_External\Service\BackendService');
+		$backendService = self::$appContainer->query('OCA\Files_External\Service\BackendService');
 
 		$params = [];
 		foreach ($definition['configuration'] as $name => $placeholder) {
@@ -161,7 +161,7 @@ class OC_Mount_Config {
 	 */
 	public static function getAbsoluteMountPoints($user) {
 		$mountPoints = array();
-		$backendService = self::$appContainer->query('\OCA\Files_External\Service\BackendService');
+		$backendService = self::$appContainer->query('OCA\Files_External\Service\BackendService');
 
 		// Load system mount points
 		$mountConfig = self::readData();
